@@ -1,0 +1,27 @@
+Name:                hip
+Version:             0.1
+Author:              Phaedon Sinis
+Category:            Graphics
+Build-type:          Simple
+
+Cabal-version:       >=1.2
+
+
+library
+  exposed-modules: Hip.ImageLoader Hip.Image Hip.ColorSpace Hip.PointSpace Hip.Generator
+    Hip.Lift Hip.Composite
+  build-depends:   base, ohiio
+  hs-source-dirs:  src src/Hip 
+  ghc-options:     -Wall -Werror
+  extra-libraries: HSohiio-0.1
+  extra-lib-dirs: /Users/phaedon/Library/Haskell/ghc-7.0.3/lib/ohiio-0.1/lib
+
+
+Executable example
+ Main-is:	example.hs
+ hs-source-dirs: src
+ Build-depends: base, ohiio
+ Other-modules: Hip.ImageLoader
+ ghc-options: -Wall -Werror
+ extra-libraries: HSohiio-0.1
+ extra-lib-dirs: /Users/phaedon/Library/Haskell/ghc-7.0.3/lib/ohiio-0.1/lib
