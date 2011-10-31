@@ -33,6 +33,8 @@ mkImageFnFromFile filename = do
                         -- bounds checking
                         | x >= w = (0,0,0,0)
                         | y >= h = (0,0,0,0)
+                        | x < 0 = (0,0,0,0)
+                        | y < 0 = (0,0,0,0)
 
                         -- We're safe. Retrieve!
                         | otherwise = toColor (unsafePerformIO $ peekByteOff mem offset)

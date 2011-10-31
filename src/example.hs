@@ -1,15 +1,18 @@
 import Hip.Generator
 import Hip.ImageLoader
-import Hip.Composite
+--import Hip.Composite
+import Hip.Transform
 import Ohiio.ImageOutput
 
 main :: IO Bool
 main = do
        tanyaFun <- mkImageFnFromFile "tanya.png"
-       starFun <- mkImageFnFromFile "stars.png"
+       --starFun <- mkImageFnFromFile "stars.png"
        
        let checker = genCheckerboard (10, 10) (0, 0, 0, 255) (255, 255, 255, 255)
-       writeImage (pdPlus checker (pdXor starFun tanyaFun)) (2000, 2400) "starry.png"
+       --writeImage (pdPlus checker (pdXor  starFun tanyaFun)) (2000, 2400) "starry.png"
+
+       _ <- writeImage (tanyaFun . (rotate (pi/4))) (2000, 2400) "rotated.png"
 
   --      writeImage tanyaFun (1000, 1000) "tanya_out.png"
-       writeImage checker (250, 250) "checker_out.png"
+       writeImage (checker . rotate (pi/4)) (640, 480) "checker_rot.png"
