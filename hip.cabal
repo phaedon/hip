@@ -9,7 +9,7 @@ Cabal-version:       >=1.2
 
 library
   exposed-modules: Hip.ImageLoader Hip.Image Hip.ColorSpace Hip.PointSpace Hip.Generator
-    Hip.Lift Hip.Composite Hip.Transform
+    Hip.Lift Hip.Composite Hip.Transform Hip.ColorAdjust
   build-depends:   base, ohiio
   hs-source-dirs:  src src/Hip 
   ghc-options:     -Wall -Werror
