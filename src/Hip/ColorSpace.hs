@@ -1,6 +1,5 @@
 module Hip.ColorSpace where
 
---import Hip.Lift
 import Data.Word
 import Data.Bits
 
@@ -23,6 +22,18 @@ type RGBColor = (Word8, Word8, Word8)
 
 -- | values must be in [0, 1]:
 type FloatColor = (Float, Float, Float, Float)
+
+
+
+boolToRGBA :: Bool -> RGBAColor
+boolToRGBA b | b = (255, 255, 255, 255)
+             | otherwise = (0, 0, 0, 255)
+
+rgbaToBool :: Float -> RGBAColor -> Bool
+rgbaToBool threshold rgba | lum < threshold = False
+                          | otherwise = True
+           where
+           lum = luminance rgba
 
 rgbaToFloat :: RGBAColor -> FloatColor
 rgbaToFloat (r, g, b, a) = (rf, gf, bf, af)
@@ -128,3 +139,12 @@ fromColor (r, g, b, a) =
           .|. fromIntegral (shiftL g 8)
           .|. fromIntegral (shiftL b 16)
           .|. fromIntegral (shiftL a 24)
+
+-- | Converts a color to a luminance value in [0, 1]
+--   (Source: GLSL orange book)
+luminance :: RGBAColor -> Float
+luminance (r, g, b, _) = rf * 0.2125 + gf * 0.7154 + bf * 0.0721
+          where
+          rf = cToFloat r / 255
+          gf = cToFloat g / 255 
+          bf = cToFloat b / 255

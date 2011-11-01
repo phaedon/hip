@@ -4,12 +4,6 @@ import Hip.ColorSpace
 import Hip.Lift
 import Hip.Image
 
-luminance :: RGBAColor -> Float
-luminance (r, g, b, _) = rf * 0.2125 + gf * 0.7154 + bf * 0.0721
-          where
-          rf = cToFloat r / 255
-          gf = cToFloat g / 255 
-          bf = cToFloat b / 255
 
 greyscaleP :: RGBAColor -> RGBAColor
 greyscaleP c@(_, _, _, a) = floatToRGBA (lum, lum, lum, af)
@@ -19,3 +13,12 @@ greyscaleP c@(_, _, _, a) = floatToRGBA (lum, lum, lum, af)
            
 greyscale :: Image -> Image
 greyscale = lift1 greyscaleP
+
+binary :: Float -> Image -> Image
+binary th = binaryToRGBAImage . (rgbaToBinaryImage th)
+
+rgbaToBinaryImage :: Float -> Image -> BinaryImage
+rgbaToBinaryImage thresh = lift1 (rgbaToBool thresh)
+
+binaryToRGBAImage :: BinaryImage -> Image
+binaryToRGBAImage = lift1 boolToRGBA

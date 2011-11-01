@@ -51,3 +51,8 @@ convolve kern2 img1 (px, py) = reduceFn kern2 combinedList
          combinedList = [ pf (k2 (kx, ky)) (translatedImg (kx, ky)) | (kx, ky) <- coordList ]
          pf = ptwiseFn kern2
          k2 = kernel kern2
+
+boolBox :: Int -> Int -> Point2D -> Bool
+boolBox xdim ydim (x, y) | x < 0 || y < 0 = False
+                         | x >= xdim || y >= ydim = False
+                         | otherwise = True
