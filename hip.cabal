@@ -12,7 +12,7 @@ library
     Hip.Lift Hip.Composite Hip.Transform Hip.ColorAdjust
   build-depends:   base, ohiio
   hs-source-dirs:  src src/Hip 
-  ghc-options:     -Wall -Werror
+  ghc-options:     -Wall -Werror -rtsopts
   extra-libraries: HSohiio-0.1
   extra-lib-dirs: /Users/phaedon/Library/Haskell/ghc-7.0.3/lib/ohiio-0.1/lib
 
@@ -22,6 +22,6 @@ Executable example
  hs-source-dirs: src
  Build-depends: base, ohiio
  Other-modules: Hip.ImageLoader
- ghc-options: -Wall -Werror
+ ghc-options: -Wall -Werror -rtsopts
  extra-libraries: HSohiio-0.1
  extra-lib-dirs: /Users/phaedon/Library/Haskell/ghc-7.0.3/lib/ohiio-0.1/lib
