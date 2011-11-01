@@ -15,7 +15,7 @@ class Color a where
       (*.) :: a -> a -> a
 
       -- Scalar multiplication
-      (**) :: Double -> a -> a
+--      (**) :: Double -> a -> a
 
 type Channel8 = Word8
 type RGBAColor = (Word8, Word8, Word8, Word8)

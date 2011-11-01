@@ -13,10 +13,10 @@ newtype Point2d = Point2d (Double, Double)
         deriving (Show, Eq)
 
 instance Point Point2d where
-         f ** Point2d (x, y) = Point2d (f * x, f * y)
+         f *** Point2d (x, y) = Point2d (f * x, f * y)
          
 -- | Generic Point typeclass.
 class Point a where
       -- Scalar multiplication (for taking weighted averages)
-      (**) :: Double -> a -> a
+      (***) :: Double -> a -> a
 

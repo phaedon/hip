@@ -1,26 +1,32 @@
 module Hip.Stencil where
 
----import Hip.PointSpace
+import Hip.PointSpace
 import Hip.ColorSpace
 import Hip.Image
+--import Data.List
 
 -- | A Stencil is an image with fixed dimensions
+--   TODO: This ought to take an operator that combines the values with 
+--   a pixel from the image. that would define this thing more generally.
 data Stencil = Stencil {
      kernel :: Kernel2D,
      dim :: (Int, Int) -- dimensions
      }
 
-gauss3x3 :: Stencil
-gauss3x3 = Stencil k (xdim, ydim)
-         where
+gauss3x3, gauss5x5, gauss7x7 :: Stencil
+gauss3x3 = Stencil (outerProd [1, 2, 1]) (3, 3)
+gauss5x5 = Stencil (outerProd [1, 4, 6, 4, 1]) (5, 5)
+gauss7x7 = Stencil (outerProd [1, 6, 15, 20, 15, 6, 1]) (7, 7)
 
-         (xdim, ydim) = (3, 3)
-         -- super awkward to type! TODO better way of specifying kernel
-         k (x, y) | x >= xdim || y >= ydim || x < 0 || y < 0 = 0
-                  | (x, y) == (0,0) || (x, y) == (0, 2) 
-                   || (x, y) == (2,0) || (x, y) == (2, 2) = 1/16
-                  | (x, y) == (1, 1) = 4/16
-                  | otherwise = 2/16
+-- | returns a 2d kernel function from a 1d kernel (by taking the 
+--   outer product with itself
+outerProd :: [Float] -> Point2D -> Float
+outerProd kern1d (x, y) | x < 0 || y < 0 = 0
+                        | x >= length kern1d || y >= length kern1d = 0
+                        | otherwise = (kern1d !! x * kern1d !! y) / totalsq
+                        where 
+                        totalsq = (sum kern1d) ** 2
+                        
 
 --stencil image xres yres 
 
