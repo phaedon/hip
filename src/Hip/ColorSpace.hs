@@ -7,6 +7,15 @@ import Data.Bits
 data PrimaryColor = Red | Green | Blue | Alpha
      deriving (Eq, Show)
 
+class Color a where
+      -- Saturating addition
+      (++) :: a -> a -> a
+
+      -- Saturating pointwise multiplication
+      (*.) :: a -> a -> a
+
+      -- Scalar multiplication
+      (**) :: Double -> a -> a
 
 type Channel8 = Word8
 type RGBAColor = (Word8, Word8, Word8, Word8)
@@ -50,6 +59,10 @@ flCMult (rf1, gf1, bf1, af1) (rf2, gf2, bf2, af2) =
         satScale gf1 gf2,
         satScale bf1 bf2,
         satScale af1 af2)
+
+flCAdd :: FloatColor -> FloatColor -> FloatColor
+flCAdd (rf1, gf1, bf1, af1) (rf2, gf2, bf2, af2) = 
+       (rf1 + rf2, gf1 + gf2, bf1 + bf2, af1 + af2)
 
 -- | 
 satAdd :: Word8 -> Word8 -> Word8
