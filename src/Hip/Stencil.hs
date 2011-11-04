@@ -33,7 +33,7 @@ gauss9x9 = Stencil (outerProd [1, 8, 28, 56, 70, 56, 28, 8, 1]) (9, 9) ptwiseCon
 
 -- | returns a 2d kernel function from a 1d kernel (by taking the 
 --   outer product with itself
-outerProd :: [Float] -> Point2D -> Float
+outerProd :: [Double] -> Point2d -> Double
 outerProd kern1d (x, y) | x < 0 || y < 0 = 0
                         | x >= length kern1d || y >= length kern1d = 0
                         | otherwise = (kern1d !! x * kern1d !! y) / totalsq

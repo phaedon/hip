@@ -11,7 +11,7 @@ import Foreign.Storable
 
 -- TODO: This function leaks memory, because it wraps the image's
 -- mem buffer in a closure. Must fix!
-mkImageFnFromFile :: String -> IO Image
+mkImageFnFromFile :: String -> IO ImageRGBA
 mkImageFnFromFile filename = do
 
                   -- Read the image and grab the relevant pointers
@@ -28,7 +28,7 @@ mkImageFnFromFile filename = do
                   return $ image mem dims
                   
                   where
-                  image :: BytePtr -> (Int, Int, Int) -> Image
+                  image :: BytePtr -> (Int, Int, Int) -> ImageRGBA
                   image mem (w, h, chan) (x, y) 
                         -- bounds checking
                         | x >= w = (0,0,0,0)
