@@ -1,31 +1,33 @@
+-- | A mini-DSL for colors.
+-- A "color" is extremely generic. In our system, it is anything that can be
+-- the range of an Image.
+-- Examples:
+--  - Bool: for morphological image processing, or for masks
+--  - RGBA8: traditional 32-bit representation
+--  - Float: for greyscale
+--  - Int: for accumulating histograms (where a histogram is an image with 
+--    a 1-dimensional domain.
 module Hip.ColorSpace where
 
 import Data.Word
-
-
-data PrimaryColor = Red | Green | Blue | Alpha
-     deriving (Eq, Show)
 
 
 -----------------------------
 -- COLOR TYPECLASSES
 -----------------------------
 
--- | The Color class simply requires any color type to be convertible to Double.
---   Why? because all computations will be done in this space, without dealing 
---   with the unpleasantries of the Word8 restriction (such as the pain of 
---   having to round everything and losing precision.)
--- 
---   Note that there is no method for converting FROM Word8. 
---   Although the need for this is obvious when loading a file from disk,
---   we cannot convert to EVERY color type (i.e. bool values in morphological
---   images) without an additional argument (i.e. a thresholding constant).
---   We'll leave that to a specific extension.
-class Color repr where 
-      toColorRGBA :: repr -> ColorRGBA
+{- | The Color class simply requires the ability to combine two colors,
+using addition (OR). We don't even require multiplication, which
+makes no sense for histograms, for example.
+ 
+Although this typeclass seems sort of useless, it will allow us to write
+very general definitions of images
+-}
+class Color color where 
+      cAdd :: color -> color -> color
 
 
-{--
+{-- |
 Sources:
 ========
 - Compositing Digital Images. Porter, T., & Duff, T. (1984). 
@@ -33,20 +35,19 @@ Sources:
 - Functional Image Synthesis. Elliott, C. 
 
 --}
+class (Color ccolor) => CompositeColor ccolor where
+      cScale :: Double -> ccolor -> ccolor
 
-class (Color repr) => CompositeColor repr where
-      cScale :: Double -> repr -> repr
+      cOver :: ccolor -> ccolor -> ccolor
+      cIn :: ccolor -> ccolor -> ccolor
+      cOut :: ccolor -> ccolor -> ccolor
+      cAtop :: ccolor -> ccolor -> ccolor
+      cXor :: ccolor -> ccolor -> ccolor
+      cPlus :: ccolor -> ccolor -> ccolor
 
-      cOver :: repr -> repr -> repr
-      cIn :: repr -> repr -> repr
-      cOut :: repr -> repr -> repr
-      cAtop :: repr -> repr -> repr
-      cXor :: repr -> repr -> repr
-      cPlus :: repr -> repr -> repr
-
-      cDarken :: Double -> repr -> repr
-      cDissolve :: Double -> repr -> repr
-      cOpaque :: Double -> repr -> repr
+      cDarken :: Double -> ccolor -> ccolor
+      cDissolve :: Double -> ccolor -> ccolor
+      cOpaque :: Double -> ccolor -> ccolor
 
 
 
@@ -68,9 +69,10 @@ data ColorRGBA = ColorRGBA {
      blue :: !Double,
      alpha :: !Double
 } deriving (Show, Eq)
+
      
 instance Color ColorRGBA where
-         toColorRGBA = id
+         cAdd = cPlus
 
 -- | Implementation of Porter-Duff compositing algebra
 instance CompositeColor ColorRGBA where
@@ -101,19 +103,48 @@ instance CompositeColor ColorRGBA where
 data ColorRGBA8 = ColorRGBA8 !Word8 !Word8 !Word8 !Word8
      deriving (Show, Eq)
 
-instance Color ColorRGBA8 where
-         toColorRGBA (ColorRGBA8 r8 g8 b8 a8) = ColorRGBA rf gf bf af
-                   where 
-                   toDouble :: Word8 -> Double
-                   toDouble w = fromIntegral w / 255
-                   rf = toDouble r8
-                   gf = toDouble g8
-                   bf = toDouble b8
-                   af = toDouble a8
+instance Color ColorRGBA8 where 
+         cAdd c1 c2 = rgbaToRGBA8 combRGBA
+              where
+              combRGBA = cAdd (rgba8ToRGBA c1) (rgba8ToRGBA c2)
+              
+         
+-- | Convert a Word8 4-tuple to floats in [0..1]
+rgba8ToRGBA :: ColorRGBA8 -> ColorRGBA
+rgba8ToRGBA (ColorRGBA8 r8 g8 b8 a8) = ColorRGBA rf gf bf af
+             where 
+             toDouble :: Word8 -> Double
+             toDouble w = fromIntegral w / 255
+             rf = toDouble r8
+             gf = toDouble g8
+             bf = toDouble b8
+             af = toDouble a8
+
+-- | Truncate a floating RGBA representation to [0..1]
+truncRGBA :: ColorRGBA -> ColorRGBA
+truncRGBA (ColorRGBA r g b a) = ColorRGBA rr rg rb ra
+          where
+           rr = if r > 1 then 1 else r
+           rg = if g > 1 then 1 else g
+           rb = if b > 1 then 1 else b
+           ra = if a > 1 then 1 else a
+
+
+-- | Convert a floating RGBA 4-tuple to Word8
+rgbaToRGBA8 :: ColorRGBA -> ColorRGBA8
+rgbaToRGBA8 c = ColorRGBA8 r8 g8 b8 a8
+            where
+            -- first, truncate (to ensure saturating semantics)
+            (ColorRGBA r g b a) = truncRGBA c
+
+            -- scale from [0..1] to [0..255]:
+            r8 = round $ r * 255
+            g8 = round $ g * 255
+            b8 = round $ b * 255
+            a8 = round $ a * 255
 
 
 data ColorBool = ColorBool !Bool
 
 instance Color ColorBool where
-         toColorRGBA (ColorBool b) | b = ColorRGBA 1 1 1 1
-                                   | otherwise = ColorRGBA 0 0 0 0
+         cAdd (ColorBool a) (ColorBool b) = ColorBool $ a || b
