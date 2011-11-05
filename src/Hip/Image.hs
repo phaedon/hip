@@ -1,3 +1,5 @@
+{-# LANGUAGE NoMonomorphismRestriction #-}
+
 -- | This is the core of the imaging DSL.
 module Hip.Image where
 
@@ -22,6 +24,27 @@ data ImageTree2d c
      | Spatial { xformFn :: Point2d -> Point2d,
                  streePtr :: ImageTree2d c
                  }       
+
+
+class ImageSYM repr where
+      leaf :: (p -> a) -> repr (p -> a)
+      unary :: (a -> b) -> repr (p -> a) -> repr (p -> b)
+      binary :: (a -> b -> c) -> repr (p -> a) -> repr (p -> b) -> repr (p -> c)
+      spatial :: (p -> p) -> repr (p -> c) -> repr (p -> c)
+
+newtype FImage c = FImage { getFn :: c }
+
+instance ImageSYM FImage where
+      leaf fn = FImage fn
+      unary op child = FImage $ op . (getFn child)
+--      binary op tl tr = FImage $ op . (getFn tl) . (getFn tr)
+      binary _ _ _  = undefined
+      spatial op img = FImage $ getFn img . op
+
+
+--    lit :: Int -> repr
+  --  neg :: repr -> repr
+    --add :: repr -> repr -> repr
 
 
 -- | The most basic image typeclass.
@@ -60,8 +83,8 @@ instance Image ImageTree2d where
 
 -- | Defines pointwise operations on images!
 instance ImgFunctor ImageTree2d where
-         imap f imgTree = Unary f imgTree
-         ilift2 f im1 im2 = Binary f im1 im2
+         imap = Unary
+         ilift2 = Binary
 
 instance CompositeImage ImageTree2d where
          iScale s = imap $ cScale s
@@ -78,3 +101,10 @@ instance CompositeImage ImageTree2d where
          iOpaque s = imap $ cOpaque s
 
 type Kernel2d = (Int, Int) -> Double
+
+
+eval :: ImageTree2d c -> Point2d -> c
+eval (Leaf fn) p = fn p
+eval (Unary op tree) p = op (eval tree p)
+eval (Binary op t1 t2) p = op (eval t1 p) (eval t2 p)
+eval (Spatial fn tree) p = (eval tree . fn) p
