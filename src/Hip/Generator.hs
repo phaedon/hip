@@ -5,18 +5,11 @@ import Hip.ColorSpace
 import Hip.Image
 --import Hip.Lift
 
--- | Generates an image function that returns a constant color
-genConstantColor :: ColorRGBA8 -> ImageRGBA
-genConstantColor color = (\_ -> toColorRGBA color)
-
--- TODO: really want to do this:
---genConstantColor :: (Color c, Image i) => c -> i
---genConstantColor color = (\_ -> color)
 
 -- | Generates a checkerboard function, defined everywhere
 -- cellDim: width and height of each cell of the checkerboard
-genCheckerboard :: (Int, Int) -> ColorRGBA -> ColorRGBA -> ImageRGBA
-genCheckerboard cellDim color1 color2 = checkerFunc
+genCheckerboard :: (Int, Int) -> ColorRGBA -> ColorRGBA -> ImageTree2d ColorRGBA
+genCheckerboard cellDim color1 color2 = Leaf checkerFunc
                 
                 where 
                 (xDim, yDim) = cellDim

@@ -34,7 +34,7 @@ Sources:
 
 --}
 
-class CompositeColor repr where
+class (Color repr) => CompositeColor repr where
       cScale :: Double -> repr -> repr
 
       cOver :: repr -> repr -> repr
@@ -117,4 +117,3 @@ data ColorBool = ColorBool !Bool
 instance Color ColorBool where
          toColorRGBA (ColorBool b) | b = ColorRGBA 1 1 1 1
                                    | otherwise = ColorRGBA 0 0 0 0
-
