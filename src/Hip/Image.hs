@@ -24,7 +24,8 @@ class ImageSYM repr where
       unary :: (ColorRGBA -> ColorRGBA) -> repr -> repr
       binary :: (ColorRGBA -> ColorRGBA -> ColorRGBA) -> repr -> repr -> repr
       spatial :: (Point2d -> Point2d) -> repr -> repr
-      crop :: Point2d -> Point2d -> repr -> repr -- these are synonyms for lower corner and dimensions
+      crop :: BBox2d -> repr -> repr
+--      reduce :: 
 
 -- | For now, this is redundant. But I'm imagining adding bounding boxes
 -- and other interesting stuff...
@@ -51,16 +52,18 @@ instance ImageSYM (Point2d -> ColorRGBA) where
          unary = lift1
          binary = lift2
          spatial op img = img . op
-         crop (Point2d cx cy) (Point2d dx dy) img pt@(Point2d x y)
-              | x < cx || x > (cx + dx) || y < cy || y > (cy + dy) = ColorRGBA 0 0 0 0
-              | otherwise = img pt
+         crop bbox img pt | isInside bbox pt = img pt
+                          | otherwise = ColorRGBA 0 0 0 0
 
 instance ImageSYM [Char] where
          leaf _ = "Leaf"
          unary _ child = "Unary" ++ "[" ++ child ++ "]"
          binary _ tl tr = "Binary: " ++ "[" ++ tl ++ ", " ++ tr ++ "]"
          spatial _ img = "Spatial: " ++ "[" ++ img ++ "]"
-         crop corner dims img = "Crop: " ++ "Corner: " ++ (show corner) ++ "Dims: " ++ (show dims) ++ "[" ++ img ++ "]"
+         crop bbox img = "Crop: " 
+                       ++ "Corner: " ++ show (corner bbox) 
+                       ++ "Dims: " ++ show (width bbox, height bbox) 
+                       ++ "[" ++ img ++ "]"
 
 wtf :: ImageTree2d ColorRGBA -> ImageTree2d ColorRGBA
 wtf = id
@@ -89,3 +92,12 @@ data ImageTree2d c
      | Spatial { xformFn :: Point2d -> Point2d,
                  streePtr :: ImageTree2d c
                  }       
+
+data BBox2d = BBox2d { corner :: Point2d,
+                       width :: Double,
+                       height :: Double } deriving (Show)
+
+isInside :: BBox2d -> Point2d -> Bool
+isInside (BBox2d (Point2d cx cy) w h) (Point2d x y) 
+         | x  < cx || x > cx + w || y < cy || y > cy + h = False
+         | otherwise = True

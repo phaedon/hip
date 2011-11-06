@@ -8,6 +8,9 @@ import Hip.Transform
 import Ohiio.ImageOutput
 --import Hip.Stencil
 
+tanya :: (ImageSYM a) => IO a
+tanya = mkImageFnFromFile "tanya.png"
+
 main :: IO Bool
 main = do
 
@@ -57,5 +60,3 @@ g = leaf greenFn
 xxx = wtf x
 a = leaf testChecker
 x = (spatial (translate (Point2d 8 8)) a)
-
-cropedx = crop (Point2d 10 10) (Point2d 100 100) g

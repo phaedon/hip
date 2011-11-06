@@ -9,8 +9,8 @@
 --    a 1-dimensional domain.
 module Hip.ColorSpace where
 
-import Data.Word
-import Data.Bits
+import Data.Word 
+import Data.Bits 
 
 
 -----------------------------
@@ -179,3 +179,17 @@ toColor wordColor = ColorRGBA8 (gc Red) (gc Green) (gc Blue) (gc Alpha)
 
 data PrimaryColor = Red | Green | Blue | Alpha
      deriving (Eq, Show)
+
+
+
+luminance :: ColorRGBA -> Double             
+luminance (ColorRGBA r g b _) = r * 0.2125 + g * 0.7154 + b * 0.0721
+
+
+cToGrey :: ColorRGBA -> ColorRGBA
+cToGrey c@(ColorRGBA _ _ _ a) = ColorRGBA lum lum lum a
+           where
+           lum = luminance c
+        
+
+ 

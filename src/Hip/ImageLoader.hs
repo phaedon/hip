@@ -19,16 +19,17 @@ mkImageFnFromFile filename = do
                   (mem, iSpecPtr) <- readImage filename
 
                   -- image size info
-                  width <- c_ImageSpec_width iSpecPtr 
-                  height <- c_ImageSpec_height iSpecPtr 
+                  cwidth <- c_ImageSpec_width iSpecPtr 
+                  cheight <- c_ImageSpec_height iSpecPtr 
                   nchannels <- c_ImageSpec_nchannels iSpecPtr                        
 
-                  let dims = Point2d (fromIntegral width) (fromIntegral height)
-                  let w = fromIntegral width
-                  let ch = fromIntegral nchannels                  
+                  let w = fromIntegral cwidth
+                  let ch = fromIntegral nchannels         
+
+                  let bbox = BBox2d (Point2d 0 0) (fromIntegral cwidth) (fromIntegral cheight)
 
                   -- Partial function application allows us to return a closure
-                  return $ crop (Point2d 0 0) dims (leaf ( image mem ch w ))
+                  return $ crop bbox (leaf ( image mem ch w ))
                   
                   where
                   image :: BytePtr -> Int -> Int -> Point2d -> ColorRGBA
