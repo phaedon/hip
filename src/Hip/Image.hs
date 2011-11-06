@@ -53,7 +53,7 @@ instance ImageSYM (Point2d -> ColorRGBA) where
          binary = lift2
          spatial op img = img . op
          crop bbox img pt | isInside bbox pt = img pt
-                          | otherwise = ColorRGBA 0 0 0 0
+                          | otherwise = colorEmpty
 
 instance ImageSYM [Char] where
          leaf _ = "Leaf"
@@ -65,11 +65,15 @@ instance ImageSYM [Char] where
                        ++ "Dims: " ++ show (width bbox, height bbox) 
                        ++ "[" ++ img ++ "]"
 
+
 wtf :: ImageTree2d ColorRGBA -> ImageTree2d ColorRGBA
 wtf = id
 
 eval :: (Point2d -> ColorRGBA) -> Point2d -> ColorRGBA
 eval fn = fn
+
+evalRGBA8 :: (Point2d -> ColorRGBA) -> Point2d -> ColorRGBA8
+evalRGBA8 fn = rgbaToRGBA8 . fn
 
 wrap :: FImage -> FImage
 wrap = id
@@ -96,6 +100,10 @@ data ImageTree2d c
 data BBox2d = BBox2d { corner :: Point2d,
                        width :: Double,
                        height :: Double } deriving (Show)
+
+bufferSize :: BBox2d -> Int
+bufferSize (BBox2d _ dw dh)
+           = (round dw * round dh) * 4
 
 isInside :: BBox2d -> Point2d -> Bool
 isInside (BBox2d (Point2d cx cy) w h) (Point2d x y) 

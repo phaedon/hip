@@ -190,6 +190,11 @@ cToGrey :: ColorRGBA -> ColorRGBA
 cToGrey c@(ColorRGBA _ _ _ a) = ColorRGBA lum lum lum a
            where
            lum = luminance c
-        
+
+
+colorEmpty, colorBlack, colorWhite :: ColorRGBA
+colorEmpty = ColorRGBA 0 0 0 0        
+colorBlack = ColorRGBA 0 0 0 1
+colorWhite = ColorRGBA 1 1 1 1 
 
  

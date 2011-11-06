@@ -13,9 +13,10 @@ library
     Hip.Image 
     Hip.Generator
     Hip.ImageLoader 
+    Hip.ImageSaver
     Hip.Transform
 --    Hip.Stencil
-  build-depends:   base, ohiio, vector
+  build-depends:   base, ohiio, vector, bytestring
   hs-source-dirs:  src src/Hip 
   ghc-options:     -Wall -Werror -rtsopts
   extra-libraries: HSohiio-0.1

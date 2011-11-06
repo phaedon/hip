@@ -10,7 +10,7 @@ import Hip.Transform
 data Stencil = Stencil {
      kernel :: ImageRGBA,
      dim :: (Int, Int), -- dimensions
-     ptwiseFn :: Double -> ColorRGBA -> ColorRGBA, -- this will become more generic
+     ptwiseFn :: ColorRGBA -> ColorRGBA -> ColorRGBA, -- this will become more generic
      reduceFn :: [ColorRGBA] -> ColorRGBA  -- and so will this
      }
 
@@ -35,10 +35,12 @@ gauss9x9 = Stencil (outerProd [1, 8, 28, 56, 70, 56, 28, 8, 1]) (9, 9) cScale re
 --   outer product with itself
 outerProd :: [Double] -> Point2d -> ColorRGBA
 outerProd kern1d (Point2d x y) | x < 0 || y < 0 = ColorRGBA 0 0 0 0
-                        | x >= length kern1d || y >= length kern1d = ColorRGBA 0 0 0 0
+                        | ix >= length kern1d || iy >= length kern1d = ColorRGBA 0 0 0 0
                         | otherwise = ColorRGBA cc cc cc cc
                         where 
-                        cc = (kern1d !! x * kern1d !! y) / totalsq
+                        ix = round x
+                        iy = round y
+                        cc = (kern1d !! ix * kern1d !! iy) / totalsq
                         totalsq = sum kern1d ** 2
                         
 -- | Convolution!
@@ -48,7 +50,7 @@ convolve kern2 img1 (Point2d px py) = reduceFn kern2 combinedList
          (xdim, ydim) = dim kern2
          (cx, cy) = (xdim `div` 2, ydim `div` 2)
          coordList = [ (kx, ky) | kx <- [0..xdim-1], ky <- [0..ydim - 1] ]
-         translatedImg = img1 . translate (-px + cx, -py + cy)
+         translatedImg = img1 . translate (Point2d (-px + cx) (-py + cy))
          combinedList = [ pf (k2 (kx, ky)) (translatedImg (kx, ky)) | (kx, ky) <- coordList ]
          pf = ptwiseFn kern2
          k2 = kernel kern2

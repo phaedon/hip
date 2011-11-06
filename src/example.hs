@@ -5,7 +5,7 @@ import Hip.Generator
 import Hip.ImageLoader
 import Hip.Transform
 --import Hip.ColorAdjust
-import Ohiio.ImageOutput
+import Hip.ImageSaver
 --import Hip.Stencil
 
 tanya :: (ImageSYM a) => IO a
@@ -14,11 +14,12 @@ tanya = mkImageFnFromFile "tanya.png"
 main :: IO Bool
 main = do
 
-       tanyaImg <- mkImageFnFromFile "tanya.png"
+       tanyaImg <- tanya
        
-       let cmpImg = binary cOver (leaf testChecker) tanyaImg
-       print $ eval cmpImg (Point2d (-10) (-10))
-       return True
+       let cmpImg = binary cOver (leaf testChecker) (spatial (translate (Point2d 0 0)) (leaf tanyaImg))
+       
+       saveImage cmpImg (BBox2d (Point2d 0 0) 2000 2000)  "tanyaout.png"
+
        --starFun <- mkImageFnFromFile "stars.png"
 
        --chFun <- mkImageFnFromFile "normalchecker.png"       

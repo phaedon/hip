@@ -35,3 +35,12 @@ class Point t where
 
 data Point2dInt = Point2dInt !Int !Int
      deriving (Show, Eq)
+
+pointOrigin :: Point2d
+pointOrigin = Point2d 0 0
+
+roundPoint :: Point2d -> (Int, Int)
+roundPoint (Point2d x y) = (round x, round y)
+
+createPoint :: (Int, Int) -> Point2d
+createPoint (x, y) = Point2d (fromIntegral x) (fromIntegral y)
