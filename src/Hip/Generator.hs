@@ -18,8 +18,8 @@ genCheckerboard cellDim color1 color2 = checkerFunc
                             | isRegion1 = color1
                             | otherwise = color2
                             where
-                            xInRange = even $ (floor x) `div` xDim
-                            yInRange = even $ (floor y) `div` yDim
+                            xInRange = even $ floor x `div` xDim
+                            yInRange = even $ floor y `div` yDim
                             isRegion1 = (xInRange && yInRange)
                                       || (not xInRange && not yInRange)
 

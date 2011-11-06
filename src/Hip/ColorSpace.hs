@@ -10,6 +10,7 @@
 module Hip.ColorSpace where
 
 import Data.Word
+import Data.Bits
 
 
 -----------------------------
@@ -148,3 +149,33 @@ data ColorBool = ColorBool !Bool
 
 instance Color ColorBool where
          cAdd (ColorBool a) (ColorBool b) = ColorBool $ a || b
+
+
+-- | Given a color field, computes proper bitmask
+colorMask :: PrimaryColor -> Word32
+colorMask pc = shiftL 0x000000ff (colorShift pc)
+
+-- | Returns bitshift given a color field
+colorShift :: PrimaryColor -> Int
+colorShift pc | pc == Red = 0
+              | pc == Green = 8
+              | pc == Blue = 16
+              | pc == Alpha = 24
+              | otherwise = error "No such color!"
+
+-- | Converts a hex number to an individual color
+getColor :: Word32 -> PrimaryColor -> Word8
+getColor wordColor pc = fromIntegral $ shiftR (wordColor .&. mask) sh
+         where
+         mask = colorMask pc
+         sh = colorShift pc
+
+-- | Separates a 32-bit rgba to a tuple of 4 8-bit colors
+toColor :: Word32 -> ColorRGBA8
+toColor wordColor = ColorRGBA8 (gc Red) (gc Green) (gc Blue) (gc Alpha)
+        where
+        gc = getColor wordColor
+
+
+data PrimaryColor = Red | Green | Blue | Alpha
+     deriving (Eq, Show)

@@ -1,15 +1,21 @@
---import Hip.Generator
+import Hip.Image
+import Hip.ColorSpace
+import Hip.PointSpace
+import Hip.Generator
 import Hip.ImageLoader
---import Hip.Composite
---import Hip.Transform
-import Hip.ColorAdjust
+import Hip.Transform
+--import Hip.ColorAdjust
 import Ohiio.ImageOutput
 --import Hip.Stencil
 
 main :: IO Bool
 main = do
 
-       tanyaFun <- mkImageFnFromFile "tanya.png"
+       tanyaImg <- mkImageFnFromFile "tanya.png"
+       
+       let cmpImg = binary cOver (leaf testChecker) tanyaImg
+       print $ eval cmpImg (Point2d (-10) (-10))
+       return True
        --starFun <- mkImageFnFromFile "stars.png"
 
        --chFun <- mkImageFnFromFile "normalchecker.png"       
@@ -38,4 +44,18 @@ main = do
        --writeImage tanyaFun (1000, 1000) "tanya_out.png"
        --writeImage (checker . rotate (pi/4)) (640, 480) "checker_rot.png"
 
-       writeImage ((binary 0.2) tanyaFun) (2500, 2500) "tanya_out.png"
+       -- writeImage ((binary 0.2) tanyaFun) (2500, 2500) "tanya_out.png"
+       
+
+gCh = binary cOver a g
+       
+
+greenFn :: Point2d -> ColorRGBA
+greenFn _ = ColorRGBA 0 1 0 1
+
+g = leaf greenFn
+xxx = wtf x
+a = leaf testChecker
+x = (spatial (translate (Point2d 8 8)) a)
+
+cropedx = crop (Point2d 10 10) (Point2d 100 100) g

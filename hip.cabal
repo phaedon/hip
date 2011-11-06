@@ -12,7 +12,7 @@ library
     Hip.Lift 
     Hip.Image 
     Hip.Generator
---    Hip.ImageLoader 
+    Hip.ImageLoader 
     Hip.Transform
 --    Hip.Stencil
   build-depends:   base, ohiio, vector
@@ -22,11 +22,12 @@ library
   extra-lib-dirs: /Users/phaedon/Library/Haskell/ghc-7.0.3/lib/ohiio-0.1/lib
 
 
--- Executable example
---  Main-is:	example.hs
---  hs-source-dirs: src
---  Build-depends: base, ohiio
---  Other-modules: Hip.ImageLoader
---  ghc-options: -Wall -Werror -rtsopts
---  extra-libraries: HSohiio-0.1
---  extra-lib-dirs: /Users/phaedon/Library/Haskell/ghc-7.0.3/lib/ohiio-0.1/lib
+Executable example
+ Main-is:	example.hs
+ hs-source-dirs: src
+ Build-depends: base, ohiio
+ Other-modules: Hip.ImageLoader
+ -- don't forget to add back -Werror
+ ghc-options: -Wall -rtsopts
+ extra-libraries: HSohiio-0.1
+ extra-lib-dirs: /Users/phaedon/Library/Haskell/ghc-7.0.3/lib/ohiio-0.1/lib
