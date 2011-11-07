@@ -32,9 +32,11 @@ poker wptr (ColorRGBA8 r g b a) xres (x, y) = do
 populateBuffer :: ImageRGBA -> BBox2d -> Ptr Word8 -> IO ()
 populateBuffer img (BBox2d (Point2d cx cy) w h) wptr = do
 
+               let icx = round cx
+               let icy = round cy
                let intWidth = round w
-               let xlim = round (cx + w)
-               let ylim = round (cy + h)         
+               let xlim = round w
+               let ylim = round h
 
                -- define double loop over monadic actions
                let loop i j | j == ylim = return ()
@@ -42,9 +44,9 @@ populateBuffer img (BBox2d (Point2d cx cy) w h) wptr = do
                             | otherwise = 
                     poker wptr currColor intWidth (i, j) >> loop (i+1) j
                     where 
-                    currColor = evalRGBA8 img (createPoint (i, j))
+                    currColor = evalRGBA8 img (createPoint (i + icx, j + icy))
 
-               loop (round cx) (round cy)
+               loop 0 0
 
 
 imageToByteString :: ImageRGBA -> BBox2d -> IO ByteString

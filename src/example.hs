@@ -14,11 +14,14 @@ tanya = mkImageFnFromFile "tanya.png"
 main :: IO Bool
 main = do
 
+       -- grab the image from file
        tanyaImg <- tanya
-       
-       let cmpImg = binary cOver (leaf testChecker) (spatial (translate (Point2d 0 0)) (leaf tanyaImg))
-       
-       saveImage cmpImg (BBox2d (Point2d 0 0) 2000 2000)  "tanyaout.png"
+
+       -- shift up
+       let shiftTanya = spatial (translate (Point2d 0 (-300))) tanyaImg       
+
+       -- output a crop of the shifted image       
+       saveImage shiftTanya (BBox2d (Point2d 1000 1000) 640 480)  "tanyaout.png"
 
        --starFun <- mkImageFnFromFile "stars.png"
 

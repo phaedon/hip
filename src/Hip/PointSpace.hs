@@ -7,7 +7,7 @@ data Point2d = Point2d !Double !Double
      deriving (Show, Eq)
 
 instance Point Point2d where
-         pAdd (Point2d x1 y1) (Point2d x2 y2) = Point2d (x1 + y1) (x2 + y2)
+         pAdd (Point2d x1 y1) (Point2d x2 y2) = Point2d (x1 + x2) (y1 + y2)
          pMult (Point2d sx sy) (Point2d x y) = Point2d (sx * x) (sy * y)
          s `sMult` Point2d x y = Point2d (s * x) (s * y)
          lerp s p1 p2 = pAdd (sMult s p1) (sMult (1 - s) p2)
