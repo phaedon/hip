@@ -24,4 +24,4 @@ genCheckerboard cellDim color1 color2 = checkerFunc
                                       || (not xInRange && not yInRange)
 
 testChecker :: Point2d -> ColorRGBA
-testChecker = genCheckerboard (10, 10) (ColorRGBA 0 0 0 0) (ColorRGBA 1 1 1 1)
+testChecker = genCheckerboard (10, 10) colorBlack colorWhite

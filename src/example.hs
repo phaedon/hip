@@ -4,15 +4,21 @@ import Hip.PointSpace
 import Hip.Generator
 import Hip.ImageLoader
 import Hip.Transform
---import Hip.ColorAdjust
 import Hip.ImageSaver
---import Hip.Stencil
+import Hip.Stencil
 
 tanya :: (ImageSYM a) => IO a
 tanya = mkImageFnFromFile "tanya.png"
 
 main :: IO Bool
 main = do
+
+       let shiftChecker = spatial (rotate (pi/10)) testChecker
+       let blurryCheck = convolve gauss9x9 shiftChecker (BBox2d pointOrigin 9 9)
+       saveImage blurryCheck (BBox2d pointOrigin 300 300) "blurryCheckerOut.png"
+       
+       let grnfn = binary cOver (leaf testChecker) (leaf (\_ -> ColorRGBA 0 1 0 1))
+       saveImage grnfn (BBox2d pointOrigin 640 480) "grnout.png"
 
        -- grab the image from file
        tanyaImg <- tanya
@@ -52,15 +58,3 @@ main = do
        --writeImage (checker . rotate (pi/4)) (640, 480) "checker_rot.png"
 
        -- writeImage ((binary 0.2) tanyaFun) (2500, 2500) "tanya_out.png"
-       
-
-gCh = binary cOver a g
-       
-
-greenFn :: Point2d -> ColorRGBA
-greenFn _ = ColorRGBA 0 1 0 1
-
-g = leaf greenFn
-xxx = wtf x
-a = leaf testChecker
-x = (spatial (translate (Point2d 8 8)) a)

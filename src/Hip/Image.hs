@@ -18,14 +18,17 @@ import Hip.PointSpace
 ----------------------------------------
 
 type ImageRGBA = Point2d -> ColorRGBA
+type ColorXform = ColorRGBA -> ColorRGBA
+type PointXform = Point2d -> Point2d
+type ColorMerge = ColorRGBA -> ColorRGBA -> ColorRGBA
 
 class ImageSYM repr where
-      leaf :: (Point2d -> ColorRGBA) -> repr
-      unary :: (ColorRGBA -> ColorRGBA) -> repr -> repr
+      leaf :: ImageRGBA -> repr
+      unary :: ColorXform -> repr -> repr
       binary :: (ColorRGBA -> ColorRGBA -> ColorRGBA) -> repr -> repr -> repr
-      spatial :: (Point2d -> Point2d) -> repr -> repr
+      spatial :: PointXform -> repr -> repr
       crop :: BBox2d -> repr -> repr
---      reduce :: 
+      reduce :: BBox2d -> ColorMerge -> repr -> repr
 
 -- | For now, this is redundant. But I'm imagining adding bounding boxes
 -- and other interesting stuff...
@@ -36,7 +39,8 @@ instance ImageSYM FImage where
       unary op child = FImage $ lift1 op (getFn child)
       binary op tl tr = FImage $ lift2 op (getFn tl) (getFn tr)
       spatial op img = FImage $ getFn img . op
-      crop = undefined
+      crop = undefined 
+      reduce = undefined
 
 -- | OMG conversion to data type. How cool, how bizarre
 instance ImageSYM (ImageTree2d ColorRGBA) where
@@ -45,6 +49,7 @@ instance ImageSYM (ImageTree2d ColorRGBA) where
          binary = Binary
          spatial = Spatial
          crop = undefined
+         reduce = undefined
 
 -- | An image expression as a single function. Whoa.......
 instance ImageSYM (Point2d -> ColorRGBA) where
@@ -54,6 +59,11 @@ instance ImageSYM (Point2d -> ColorRGBA) where
          spatial op img = img . op
          crop bbox img pt | isInside bbox pt = img pt
                           | otherwise = colorEmpty
+         -- TODO: add an argument for init value (colorEmpty won't always work)
+         reduce bbox op img _ = foldr op colorEmpty colors
+                where
+                colors = [img p | p <- (bboxToCoordList bbox)]
+         
 
 instance ImageSYM [Char] where
          leaf _ = "Leaf"
@@ -64,7 +74,8 @@ instance ImageSYM [Char] where
                        ++ "Corner: " ++ show (corner bbox) 
                        ++ "Dims: " ++ show (width bbox, height bbox) 
                        ++ "[" ++ img ++ "]"
-
+         reduce = undefined
+                       
 
 wtf :: ImageTree2d ColorRGBA -> ImageTree2d ColorRGBA
 wtf = id
@@ -101,6 +112,10 @@ data BBox2d = BBox2d { corner :: Point2d,
                        width :: Double,
                        height :: Double } deriving (Show)
 
+
+bboxIntDims :: BBox2d -> (Int, Int)
+bboxIntDims (BBox2d _ dw dh) = (round dw, round dh)
+
 bufferSize :: BBox2d -> Int
 bufferSize (BBox2d _ dw dh)
            = (round dw * round dh) * 4
@@ -109,3 +124,15 @@ isInside :: BBox2d -> Point2d -> Bool
 isInside (BBox2d (Point2d cx cy) w h) (Point2d x y) 
          | x  < cx || x > cx + w || y < cy || y > cy + h = False
          | otherwise = True
+
+bboxToCoordList :: BBox2d -> [Point2d]
+bboxToCoordList (BBox2d (Point2d cx cy) w h) = coordList
+                where
+                icx = (round cx)::Int
+                icy = (round cy)::Int
+                iw = round w
+                ih = round h
+                coordList = [ Point2d (fromIntegral kx) (fromIntegral ky) | kx <- [icx..(icx + iw)], ky <- [icy..(icy + ih)] ]
+
+                
+                

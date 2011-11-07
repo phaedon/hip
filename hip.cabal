@@ -15,7 +15,7 @@ library
     Hip.ImageLoader 
     Hip.ImageSaver
     Hip.Transform
---    Hip.Stencil
+    Hip.Stencil
   build-depends:   base, ohiio, vector, bytestring
   hs-source-dirs:  src src/Hip 
   ghc-options:     -Wall -Werror -rtsopts

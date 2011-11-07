@@ -50,7 +50,7 @@ class (Color ccolor) => CompositeColor ccolor where
       cDissolve :: Double -> ccolor -> ccolor
       cOpaque :: Double -> ccolor -> ccolor
 
-
+      cMult :: ccolor -> ccolor -> ccolor
 
 -----------------------------
 -- COLOR TYPES
@@ -99,6 +99,7 @@ instance CompositeColor ColorRGBA where
 
          cOpaque omega (ColorRGBA r g b a) = ColorRGBA r g b (a * omega)
 
+         cMult (ColorRGBA r g b a) (ColorRGBA r2 g2 b2 a2) = ColorRGBA (r*r2) (g*g2) (b*b2) (a*a2)
 
 
 data ColorRGBA8 = ColorRGBA8 !Word8 !Word8 !Word8 !Word8
