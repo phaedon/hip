@@ -26,8 +26,12 @@ main = do
        -- shift up
        let shiftTanya = spatial (translate (Point2d 0 (-300))) tanyaImg       
 
+       -- grey, rotate and blur
+       let rotTanya =  spatial (rotate (pi/10)) (unary (cToGrey) shiftTanya)
+       let blurTanya = convolve gauss5x5 rotTanya (BBox2d pointOrigin 5 5)
+
        -- output a crop of the shifted image       
-       saveImage shiftTanya (BBox2d (Point2d 1000 1000) 640 480)  "tanyaout.png"
+       saveImage blurTanya (BBox2d (Point2d 1000 1000) 640 480)  "tanyaout.png"
 
        --starFun <- mkImageFnFromFile "stars.png"
 

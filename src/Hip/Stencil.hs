@@ -1,5 +1,3 @@
-{-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE FlexibleInstances #-} 
 {-# LANGUAGE FlexibleContexts #-} 
 
 module Hip.Stencil where
@@ -31,26 +29,13 @@ outerProd kern1d (Point2d x y) | x < 0 || y < 0 = colorEmpty
 
 
 convolve :: ImageSYM (Point2d -> t) => (Point2d -> t) -> (Point2d -> t) -> BBox2d -> Point2d -> t
-convolve kern img bbox pt = reduce bbox cAdd (binary cMult kern shiftedImg) pt
+convolve kern img bbox pt = reduce bbox cAdd (binary cMult kern (spatial shift img)) pt
          where
+         -- integer dims of the bounding box
          (xdim, ydim) = bboxIntDims bbox
+
+         -- get the kernel's center point
          (cx, cy) = (xdim `div` 2, ydim `div` 2)
-         shift = translate $ pAdd (pNeg pt) (Point2d (fromIntegral cx) (fromIntegral cy))
-         -- TODO: add adjustment for centering the kernel
-         shiftedImg = spatial shift img
+         kernCtr = Point2d (fromIntegral cx) (fromIntegral cy)
 
-
-
-{-                        
--- | Convolution!
-convolveOld :: Stencil -> ImageRGBA -> ImageRGBA
-convolveOld kern2 img1 (Point2d px py) = reduceFn kern2 combinedList
-         where 
-         (xdim, ydim) = dim kern2
-         (cx, cy) = (xdim `div` 2, ydim `div` 2)
-         coordList = [ (kx, ky) | kx <- [0..xdim-1], ky <- [0..ydim - 1] ]
-         translatedImg = img1 . translate (Point2d (-px + cx) (-py + cy))
-         combinedList = [ pf (k2 (kx, ky)) (translatedImg (kx, ky)) | (kx, ky) <- coordList ]
-         pf = ptwiseFn kern2
-         k2 = kernel kern2
--}
+         shift = translate $ pAdd (pNeg pt) kernCtr

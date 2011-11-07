@@ -130,9 +130,7 @@ bboxToCoordList (BBox2d (Point2d cx cy) w h) = coordList
                 where
                 icx = (round cx)::Int
                 icy = (round cy)::Int
-                iw = round w
-                ih = round h
+                iw = round w - 1
+                ih = round h - 1
                 coordList = [ Point2d (fromIntegral kx) (fromIntegral ky) | kx <- [icx..(icx + iw)], ky <- [icy..(icy + ih)] ]
 
-                
-                
