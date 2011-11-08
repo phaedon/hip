@@ -18,7 +18,7 @@ library
     Hip.Stencil
   build-depends:   base, ohiio, vector, bytestring
   hs-source-dirs:  src src/Hip 
-  ghc-options:     -Wall -Werror -rtsopts
+  ghc-options:     -Wall -Werror -rtsopts -O
   extra-libraries: HSohiio-0.1
   extra-lib-dirs: /Users/phaedon/Library/Haskell/ghc-7.0.3/lib/ohiio-0.1/lib
 

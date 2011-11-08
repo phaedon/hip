@@ -13,25 +13,30 @@ tanya = mkImageFnFromFile "tanya.png"
 main :: IO Bool
 main = do
 
-       let shiftChecker = spatial (rotate (pi/10)) testChecker
-       let blurryCheck = convolve gauss9x9 shiftChecker (BBox2d pointOrigin 9 9)
-       saveImage blurryCheck (BBox2d pointOrigin 300 300) "blurryCheckerOut.png"
+       --let shiftChecker = spatial (rotate (pi/10)) testChecker
+       --let blurryCheck = convolve gauss9x9 shiftChecker (BBox2d pointOrigin 9 9)
+       --saveImage blurryCheck (BBox2d pointOrigin 300 300) "blurryCheckerOut.png"
        
-       let grnfn = binary cOver (leaf testChecker) (leaf (\_ -> ColorRGBA 0 1 0 1))
-       saveImage grnfn (BBox2d pointOrigin 640 480) "grnout.png"
+       --let grnfn = binary cOver (leaf testChecker) (leaf (\_ -> ColorRGBA 0 1 0 1))
+       --saveImage grnfn (BBox2d pointOrigin 640 480) "grnout.png"
 
        -- grab the image from file
-       tanyaImg <- tanya
+       --tanyaImg <- tanya
 
        -- shift up
-       let shiftTanya = spatial (translate (Point2d 0 (-300))) tanyaImg       
+       --let shiftTanya = spatial (translate (Point2d 0 (-300))) tanyaImg       
 
        -- grey, rotate and blur
-       let rotTanya =  spatial (rotate (pi/10)) (unary (cToGrey) shiftTanya)
-       let blurTanya = convolve gauss5x5 rotTanya (BBox2d pointOrigin 5 5)
+       --let rotTanya =  spatial (rotate (pi/10)) (unary (cToGrey) shiftTanya)
+       --let blurTanya = convolve gauss5x5 rotTanya (BBox2d pointOrigin 5 5)
 
        -- output a crop of the shifted image       
-       saveImage blurTanya (BBox2d (Point2d 1000 1000) 640 480)  "tanyaout.png"
+       --saveImage blurTanya (BBox2d (Point2d 1000 1000) 640 480)  "tanyaout.png"
+
+       -- SLOW BLURRY CHECKERS
+       --let blurChecker = convolve gauss3x3 testChecker (BBox2d pointOrigin 3 3)
+       let blurChecker = convolve gauss7x7 testChecker (BBox2d pointOrigin 7 7) 7 7
+       saveImage blurChecker (BBox2d pointOrigin 640 480) "blurCheckerOut.png"
 
        --starFun <- mkImageFnFromFile "stars.png"
 

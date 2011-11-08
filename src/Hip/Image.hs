@@ -12,6 +12,8 @@ import Hip.Lift
 import Hip.ColorSpace
 import Hip.PointSpace
 
+import Data.List
+--import qualified Data.Vector.Unboxed as VU
 
 ----------------------------------------
 -- Image TYPECLASSES
@@ -24,6 +26,7 @@ type ColorMerge = ColorRGBA -> ColorRGBA -> ColorRGBA
 
 class ImageSYM repr where
       leaf :: ImageRGBA -> repr
+      --leaf :: (Point p, Color c) => (p -> c) -> repr
       unary :: ColorXform -> repr -> repr
       binary :: (ColorRGBA -> ColorRGBA -> ColorRGBA) -> repr -> repr -> repr
       spatial :: PointXform -> repr -> repr
@@ -60,10 +63,9 @@ instance ImageSYM (Point2d -> ColorRGBA) where
          crop bbox img pt | isInside bbox pt = img pt
                           | otherwise = colorEmpty
          -- TODO: add an argument for init value (colorEmpty won't always work)
-         reduce bbox op img _ = foldr op colorEmpty colors
+         reduce bbox op img _ = foldl' op colorEmpty colors
                 where
-                colors = [img p | p <- (bboxToCoordList bbox)]
-         
+                colors = map img (bboxToCoordList bbox) -- [img p | p <- (bboxToCoordList bbox)]
 
 instance ImageSYM [Char] where
          leaf _ = "Leaf"
@@ -132,5 +134,6 @@ bboxToCoordList (BBox2d (Point2d cx cy) w h) = coordList
                 icy = (round cy)::Int
                 iw = round w - 1
                 ih = round h - 1
+
                 coordList = [ Point2d (fromIntegral kx) (fromIntegral ky) | kx <- [icx..(icx + iw)], ky <- [icy..(icy + ih)] ]
 
