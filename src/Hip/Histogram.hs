@@ -1,6 +1,3 @@
---{-# LANGUAGE NoMonomorphismRestriction #-}
---{-# LANGUAGE FlexibleContexts #-}
-
 module Hip.Histogram where
 
 import Hip.ColorSpace
@@ -12,14 +9,18 @@ import Data.List
 --import qualified Data.Vector.Generic.Mutable as GM
 import qualified Data.Vector.Unboxed as VU
 
+-- | Represents a single column histogram. 
+-- 
 data CHist = CHist {
-     
+
+     -- Automatically recomputed as column slides down     
      redH :: VU.Vector Int,
      greenH :: VU.Vector Int,
      blueH :: VU.Vector Int,
-     colNum :: Int,
-     rowNum :: Int, 
-     radius :: Int
+
+     colNum :: Int, -- ^ constant. Don't change!
+     rowNum :: Int, -- ^ increment by 1 as column slides
+     radius :: Int -- ^ constant
      
 } deriving (Show)
 
@@ -100,12 +101,14 @@ kMedian khist = ColorRGBA r g b 1
         g = vMedian (VU.toList $ greenMH khist) / 255
         b = vMedian (VU.toList $ blueMH khist) / 255
 
+-- | Recursive computation of median
 vMedianRec :: Int -> Int -> Int -> [Int] -> Int
 vMedianRec counter acc lim (x:xs) 
            | acc + x < lim = vMedianRec (counter+1) (acc + x) lim xs
            | otherwise = counter
 vMedianRec counter _ _ _ = counter
 
+-- | Computes the median *bucket* from a histogram (list of ints)
 vMedian :: [Int] -> Double
 vMedian vec = fromIntegral $ vMedianRec 0 0 lim vec
         where
@@ -116,7 +119,9 @@ vMedian vec = fromIntegral $ vMedianRec 0 0 lim vec
 mergeVectors :: (Num c, VU.Unbox c) => VU.Vector c -> VU.Vector c -> VU.Vector c
 mergeVectors = VU.zipWith (+)
 
-
+-- | Given an image, with a width and a kernel radius,
+-- initializes a set of column histograms and returns it
+-- as a KHist data struct.
 initImageHist :: ImageRGBA -> Int -> Int -> KHist
 initImageHist img ncols krad
               = KHist 
@@ -124,14 +129,17 @@ initImageHist img ncols krad
                 krad
                 redM greenM blueM
       where
+      -- All column histograms in a list!
       allHists = [createColumnHist img krad c 0 | c <- [0..(ncols - 1)]] 
+
+      -- Precompute the merged histograms over the initial kernel region
       redM = foldl' mergeVectors VU.empty [redH c | c <- take (2 * krad + 1) allHists]
       greenM = foldl' mergeVectors VU.empty [greenH c | c <- take (2 * krad + 1) allHists]
       blueM = foldl' mergeVectors VU.empty [blueH c | c <- take (2 * krad + 1) allHists]
 
 
 genColCoords :: Int -> Int -> Int -> [Point2d]
-genColCoords kradius col row = [Point2d (fromIntegral col) (fromIntegral y) | y <- [row - kradius..row+kradius]]
+genColCoords kradius col row = [createPoint (col, y) | y <- [row - kradius..row+kradius]]
 
 valsToHist :: VU.Vector Double -> VU.Vector Int -> Int ->VU.Vector Int
 valsToHist vals hist bucket

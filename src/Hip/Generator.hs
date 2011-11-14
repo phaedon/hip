@@ -1,13 +1,15 @@
-module Hip.Generator where
+-- | Generates procedural images
+module Hip.Generator (genCheckerboard, testChecker) where
 
 import Hip.PointSpace
 import Hip.ColorSpace
---import Hip.Image
 
 
 -- | Generates a checkerboard function, defined everywhere
 -- cellDim: width and height of each cell of the checkerboard
-genCheckerboard :: (Int, Int) -> ColorRGBA -> ColorRGBA -> Point2d -> ColorRGBA
+genCheckerboard :: (Int, Int) -- ^ cell dimensions
+                   -> ColorRGBA -> ColorRGBA 
+                   -> Point2d -> ColorRGBA
 genCheckerboard cellDim color1 color2 = checkerFunc
                 
                 where 
@@ -23,5 +25,8 @@ genCheckerboard cellDim color1 color2 = checkerFunc
                             isRegion1 = (xInRange && yInRange)
                                       || (not xInRange && not yInRange)
 
+
+-- | A prefab B&W checkerboard with 10x10 cells.
+-- Convenient for testing
 testChecker :: Point2d -> ColorRGBA
 testChecker = genCheckerboard (10, 10) colorBlack colorWhite

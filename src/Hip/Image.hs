@@ -6,7 +6,25 @@
 -- For more information, please see:
 -- http://conal.net/Pan/
 -- http://okmij.org/ftp/tagless-final/course/course.html
-module Hip.Image where
+module Hip.Image (
+
+       ImageSYM (leaf, unary, binary,
+                 spatial, crop, reduce),
+
+       ImageRGBA,
+       
+       BBox2d (BBox2d, corner, width, height),
+       
+       bboxIntDims,       
+       bufferSize,
+       isInside,
+       bboxToCoordList,
+
+       eval,
+       evalRGBA8
+
+
+) where
 
 import Hip.Lift
 import Hip.ColorSpace
@@ -20,23 +38,31 @@ import Data.List
 ----------------------------------------
 
 type ImageRGBA = Point2d -> ColorRGBA
-type ColorXform = ColorRGBA -> ColorRGBA
-type PointXform = Point2d -> Point2d
-type ColorMerge = ColorRGBA -> ColorRGBA -> ColorRGBA
 
 class ImageSYM repr where
+
       leaf :: ImageRGBA -> repr
-      --leaf :: (Point p, Color c) => (p -> c) -> repr
-      unary :: ColorXform -> repr -> repr
-      binary :: (ColorRGBA -> ColorRGBA -> ColorRGBA) -> repr -> repr -> repr
-      spatial :: PointXform -> repr -> repr
+
+      unary :: (ColorRGBA -> ColorRGBA) 
+               -> repr -> repr
+
+      binary :: (ColorRGBA -> ColorRGBA -> ColorRGBA) 
+                -> repr -> repr -> repr
+
+      spatial :: (Point2d -> Point2d)
+                  -> repr -> repr
+
       crop :: BBox2d -> repr -> repr
-      reduce :: BBox2d -> ColorMerge -> repr -> repr
+
+      reduce :: BBox2d 
+                -> (ColorRGBA -> ColorRGBA -> ColorRGBA) 
+                -> repr -> repr
 
 -- | For now, this is redundant. But I'm imagining adding bounding boxes
 -- and other interesting stuff...
-newtype FImage = FImage { getFn :: Point2d -> ColorRGBA }
+--newtype FImage = FImage { getFn :: Point2d -> ColorRGBA }
 
+{-
 instance ImageSYM FImage where
       leaf = FImage
       unary op child = FImage $ lift1 op (getFn child)
@@ -44,7 +70,9 @@ instance ImageSYM FImage where
       spatial op img = FImage $ getFn img . op
       crop = undefined 
       reduce = undefined
+-}
 
+{-
 -- | OMG conversion to data type. How cool, how bizarre
 instance ImageSYM (ImageTree2d ColorRGBA) where
          leaf = Leaf
@@ -53,6 +81,7 @@ instance ImageSYM (ImageTree2d ColorRGBA) where
          spatial = Spatial
          crop = undefined
          reduce = undefined
+-}
 
 -- | An image expression as a single function. Whoa.......
 instance ImageSYM (Point2d -> ColorRGBA) where
@@ -79,8 +108,8 @@ instance ImageSYM [Char] where
          reduce = undefined
                        
 
-wtf :: ImageTree2d ColorRGBA -> ImageTree2d ColorRGBA
-wtf = id
+--wtf :: ImageTree2d ColorRGBA -> ImageTree2d ColorRGBA
+--wtf = id
 
 eval :: (Point2d -> ColorRGBA) -> Point2d -> ColorRGBA
 eval fn = fn
@@ -88,15 +117,16 @@ eval fn = fn
 evalRGBA8 :: (Point2d -> ColorRGBA) -> Point2d -> ColorRGBA8
 evalRGBA8 fn = rgbaToRGBA8 . fn
 
-wrap :: FImage -> FImage
-wrap = id
+--wrap :: FImage -> FImage
+--wrap = id
 
-showStr :: String -> String
-showStr = id
+--showStr :: String -> String
+--showStr = id
 
 
 
 -- | I'm keeping this around for now, in case I need to do anything with it.
+{-
 data ImageTree2d c
      = Leaf { imageFn :: Point2d -> c }
      | Unary { unaryOp :: c -> c,
@@ -109,6 +139,7 @@ data ImageTree2d c
      | Spatial { xformFn :: Point2d -> Point2d,
                  streePtr :: ImageTree2d c
                  }       
+-}
 
 data BBox2d = BBox2d { corner :: Point2d,
                        width :: Double,
@@ -130,8 +161,8 @@ isInside (BBox2d (Point2d cx cy) w h) (Point2d x y)
 bboxToCoordList :: BBox2d -> [Point2d]
 bboxToCoordList (BBox2d (Point2d cx cy) w h) = coordList
                 where
-                icx = (round cx)::Int
-                icy = (round cy)::Int
+                icx = round cx ::Int
+                icy = round cy ::Int
                 iw = round w - 1
                 ih = round h - 1
 

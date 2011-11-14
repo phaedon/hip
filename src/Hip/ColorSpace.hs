@@ -11,7 +11,7 @@ module Hip.ColorSpace where
 
 import Data.Word 
 import Data.Bits 
-import qualified Data.Vector.Unboxed as VU
+--import qualified Data.Vector.Unboxed as VU
 
 -----------------------------
 -- COLOR TYPECLASSES
