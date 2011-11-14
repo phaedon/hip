@@ -137,3 +137,10 @@ bboxToCoordList (BBox2d (Point2d cx cy) w h) = coordList
 
                 coordList = [ Point2d (fromIntegral kx) (fromIntegral ky) | kx <- [icx..(icx + iw)], ky <- [icy..(icy + ih)] ]
 
+{-
+data CropCtx = Crop | NoCrop
+
+instance (ImageSYM r) => ImageSYM (CropCtx -> r) where
+         leaf fn _ = fn
+         unary _ img (Crop) = undefined
+-}

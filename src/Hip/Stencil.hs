@@ -15,8 +15,6 @@ gauss5x5 = outerProd $ VU.fromList [1, 4, 6, 4, 1]
 gauss7x7 = outerProd $ VU.fromList [1, 6, 15, 20, 15, 6, 1]
 gauss9x9 = outerProd $ VU.fromList [1, 8, 28, 56, 70, 56, 28, 8, 1]
 
--- TODO: use unboxed vectors instead of [Double]
--- HOWEVER.... this is not a bottleneck.
 
 -- | returns a 2d kernel function from a 1d kernel (by taking the 
 --   outer product with itself

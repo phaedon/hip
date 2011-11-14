@@ -11,7 +11,7 @@ module Hip.ColorSpace where
 
 import Data.Word 
 import Data.Bits 
-
+import qualified Data.Vector.Unboxed as VU
 
 -----------------------------
 -- COLOR TYPECLASSES
@@ -199,3 +199,8 @@ colorBlack = ColorRGBA 0 0 0 1
 colorWhite = ColorRGBA 1 1 1 1 
 
  
+--instance VU.Vector ColorRGBA where
+
+--instance VU.Unbox ColorRGBA where
+         
+        

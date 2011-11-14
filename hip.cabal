@@ -16,11 +16,13 @@ library
     Hip.ImageSaver
     Hip.Transform
     Hip.Stencil
+    Hip.Histogram
+    Hip.Filter.Median
   build-depends:   base, ohiio, vector, bytestring
-  hs-source-dirs:  src src/Hip 
+  hs-source-dirs:  src src/Hip src/Hip/Filter
   ghc-options:     -Wall -Werror -rtsopts -O
   extra-libraries: HSohiio-0.1
-  extra-lib-dirs: /Users/phaedon/Library/Haskell/ghc-7.0.3/lib/ohiio-0.1/lib
+  extra-lib-dirs: /Users/phaedon/Library/Haskell/ghc-7.2.1/lib/ohiio-0.1/lib
 
 
 Executable example
@@ -31,4 +33,4 @@ Executable example
  -- don't forget to add back -Werror
  ghc-options: -Wall -rtsopts
  extra-libraries: HSohiio-0.1
- extra-lib-dirs: /Users/phaedon/Library/Haskell/ghc-7.0.3/lib/ohiio-0.1/lib
+ extra-lib-dirs: /Users/phaedon/Library/Haskell/ghc-7.2.1/lib/ohiio-0.1/lib
