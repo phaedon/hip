@@ -1,3 +1,15 @@
+-- |
+-- Module      : Hip.Histogram
+-- Copyright   : (c) Phaedon Sinis
+-- License     : BSD-style
+-- 
+-- Maintainer  : Phaedon Sinis <sinis AT stanford>
+-- Stability   : experimental
+-- 
+-- Histograms are an input into some image processing algorithms,
+-- most notably fast median filtering.
+-- This module allows the creation and updating of histograms that 
+-- are oriented around such algorithms.
 module Hip.Histogram where
 
 import Hip.ColorSpace
@@ -5,9 +17,43 @@ import Hip.PointSpace
 import Hip.Image
 
 import Data.List
---import qualified Data.Vector.Generic as G
---import qualified Data.Vector.Generic.Mutable as GM
 import qualified Data.Vector.Unboxed as VU
+
+import qualified Data.Map as Map
+import Data.Maybe
+
+type HistCache = Map.Map Int CHist
+
+
+columnHist :: ImageRGBA -> HistCache -> (Int, Int) -> Int -> (HistCache, CHist)
+columnHist img cache (col, row) rad 
+           -- Column not yet in cache? compute explicitly and add to cache
+           | isNothing cacheE = (expCache, newHist)
+
+           -- Curr row in cache? just return!
+           | row == cachedRow = (cache, fromJust cacheE)
+
+           | otherwise = (adjCache, slidDown)
+           
+           where
+           -- Maybe CHist, by searching map for something in that column
+           cacheE = Map.lookup col cache
+           
+           -- what's the row number of the thing retrieved from the cache?
+           cachedRow = rowNum $ fromJust cacheE 
+
+           -- Expanded cache with inserted column
+           expCache = Map.insert col newHist cache
+
+           -- New column histogram
+           newHist = createColumnHist img rad col row
+
+           -- SNEAKY recursive call here
+           (cacheAbove, histAbove) = columnHist img cache (col, row - 1) rad
+           slidDown = slideCol img histAbove
+           -- Note use of cacheAbove here. Very careful!
+           adjCache = Map.insert col slidDown cacheAbove
+
 
 -- | Represents a single column histogram. 
 -- 
@@ -188,3 +234,10 @@ createColumnHist img kradius col row
 
 
                  
+
+-- $references
+--
+-- * Perreault, S., & Hebert, P. (2007). Median filtering in constant time. 
+--   IEEE transactions on image processing : a publication of the IEEE Signal 
+--   Processing Society, 16(9), 2389-94. <http://nomis80.org/ctmf.html>
+
