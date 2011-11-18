@@ -21,7 +21,7 @@ library
     Hip.Transform
     Hip.Stencil
     Hip.Histogram
---    Hip.Filter.Median
+    Hip.Filter.Median
   build-depends:   base, ohiio, vector, bytestring, containers
   hs-source-dirs:  src src/Hip src/Hip/Filter
  -- don't forget to add back -Werror

@@ -54,6 +54,7 @@ columnHist img cache (col, row) rad
            -- Note use of cacheAbove here. Very careful!
            adjCache = Map.insert col slidDown cacheAbove
 
+
 kernelHist :: ImageRGBA -> HistCache -> (Int, Int) -> Int -> (HistCache, KHist)
 kernelHist img cache (col, row) rad = (cache, KHist redM greenM blueM)
            where
@@ -168,22 +169,6 @@ vMedian vec = fromIntegral $ vMedianRec 0 0 lim vec
 -- | For computing a histogram union (i.e. merging column histograms)
 mergeVectors :: (Num c, VU.Unbox c) => VU.Vector c -> VU.Vector c -> VU.Vector c
 mergeVectors = VU.zipWith (+)
-
--- | Given an image, with a width and a kernel radius,
--- initializes a set of column histograms and returns it
--- as a KHist data struct.
-initImageHist :: ImageRGBA -> Int -> Int -> KHist
-initImageHist img ncols krad
-              = KHist 
-                redM greenM blueM
-      where
-      -- All column histograms in a list!
-      allHists = [createColumnHist img krad c 0 | c <- [0..(ncols - 1)]] 
-
-      -- Precompute the merged histograms over the initial kernel region
-      redM = foldl' mergeVectors VU.empty [redH c | c <- take (2 * krad + 1) allHists]
-      greenM = foldl' mergeVectors VU.empty [greenH c | c <- take (2 * krad + 1) allHists]
-      blueM = foldl' mergeVectors VU.empty [blueH c | c <- take (2 * krad + 1) allHists]
 
 
 genColCoords :: Int -> Int -> Int -> [Point2d]
