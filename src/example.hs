@@ -11,9 +11,12 @@ import Hip.Filter.Median
 
 import qualified Data.Map as Map
 
+--import Criterion.Main
+
 tanya :: (ImageSYM a) => IO a
 tanya = mkImageFnFromFile "tanya.png"
 
+--main = defaultMain [bench "medfil" $ whnfIO mainOld]
 
 main :: IO Bool
 main = do
@@ -34,11 +37,14 @@ main = do
        --    1min 10sec using reverse loop in medianFilter
        --     15 sec by using the union of maps in kernelHist !
        --     40 sec with radius 7 (15 sec with rad 3)
-       putStrLn "Beginning median filter..."
 
+       --   6 sec with Map instead of Vector for histograms! 100x100 rad 3
+       --   10 sec with Map instead of Vector for histograms! 100x100 rad 7
+       --      (and also after using foldr in valsToHMap)
+       --    200x200 rad 3 : 1min 25 sec :-(
        noisy <- mkImageFnFromFile "noisy.png"
-       medNoisy <- medianFilter noisy (BBox2d pointOrigin 100 100) 3
---       medChecker <- medianFilter testChecker (BBox2d pointOrigin 100 100) 3
+       medNoisy <- medianFilter noisy (BBox2d pointOrigin 100 100) 7
+       --medChecker <- medianFilter testChecker (BBox2d pointOrigin 100 100) 3
 
        -- shift up
        --let shiftTanya = spatial (translate (Point2d 0 (-200))) tanyaImg       
@@ -49,6 +55,7 @@ main = do
        -- output a crop of the shifted image       
        --saveImage medianTanya (BBox2d (Point2d 800 800) 200 200)  "tanyaout.png"
        saveImage medNoisy (BBox2d pointOrigin 100 100)  "medNoisy.png"
+       --saveImage medChecker (BBox2d pointOrigin 100 100)  "medChecker.png"
 
        -- SLOW BLURRY CHECKERS
        --let shiftChecker = spatial (rotate (pi/10)) testChecker

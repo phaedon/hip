@@ -5,14 +5,10 @@ import Hip.Image
 import Hip.Buffer
 import Hip.ColorSpace
 
---import qualified Data.Vector.Generic.Mutable as VGM
---import qualified Data.Vector.Unboxed.Mutable as VUM
-
 import Prelude hiding ((++))
 
 import qualified Data.Vector.Unboxed as VU
 import Data.Vector.Unboxed ((++))
---import qualified Control.Monad.Primitive as MP
 
 import qualified Data.Map as Map
        
@@ -39,16 +35,12 @@ medianFilter img bbox krad = do
                           (ColorRGBA r g b a) = median
                           currColors = VU.fromList [r, g, b, a]
                           (hCache, kHist) = kernelHist img cache (i, j) krad
-                          median = kMedian kHist -- THIS IS THE BOTTLENECK
+                          median = kMedian kHist
 
                                                       
              mvec <- loop Map.empty VU.empty 0 0
 
-             putStrLn "DONE THE INNER MVEC LOOP"
-
              return $ crop bbox ( 
                       leaf $ 
                       dVectorToImageRGBA mvec (round $ width bbox) )
-
-
 

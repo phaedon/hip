@@ -16,9 +16,7 @@ import Hip.ColorSpace
 import Hip.PointSpace
 import Hip.Image
 
-import Data.List
-import qualified Data.Vector.Unboxed as VU
-
+--import qualified Data.List as DL -- in case I need foldl'
 import qualified Data.Map as Map
 import Data.Maybe
 
@@ -63,11 +61,9 @@ kernelHist img cache (col, row) rad = (caches, KHist redM greenM blueM)
            -- TODO: make this more accurate, more efficient?
            caches = Map.unions [m | (m, c) <- colHists]
            
-           blank = VU.replicate (256::Int) (0::Int)
-
-           redM = foldl' mergeVectors blank [redH c | (m, c) <- colHists]
-           greenM = foldl' mergeVectors blank [greenH c | (m, c) <- colHists]
-           blueM = foldl' mergeVectors blank [blueH c | (m, c) <- colHists]
+           redM = Map.unionsWith (+) [redCM c | (_, c) <- colHists]
+           greenM = Map.unionsWith (+) [greenCM c | (_, c) <- colHists]
+           blueM = Map.unionsWith (+) [blueCM c | (_, c) <- colHists]
            
 
 -- | Represents a single column histogram. 
@@ -75,9 +71,9 @@ kernelHist img cache (col, row) rad = (caches, KHist redM greenM blueM)
 data CHist = CHist {
 
      -- Automatically recomputed as column slides down     
-     redH :: VU.Vector Int,
-     greenH :: VU.Vector Int,
-     blueH :: VU.Vector Int,
+     redCM :: Map.Map Int Int,
+     greenCM :: Map.Map Int Int,
+     blueCM :: Map.Map Int Int,
 
      colNum :: Int, -- ^ constant. Don't change!
      rowNum :: Int, -- ^ increment by 1 as column slides
@@ -89,11 +85,9 @@ data CHist = CHist {
 -- | Represents the histogram for the entire image region of interest.
 -- 
 data KHist = KHist {
-
-     redMH :: VU.Vector Int,
-     greenMH :: VU.Vector Int,
-     blueMH :: VU.Vector Int
-
+       redKM :: Map.Map Int Int,
+       greenKM :: Map.Map Int Int,
+       blueKM :: Map.Map Int Int
 } deriving (Show)
 
 
@@ -105,9 +99,9 @@ slideCol img ch = CHist rAdj gAdj bAdj (colNum ch) (rowNum ch + 1) rad
          rad = radius ch
          drad = fromIntegral rad         
 
-         rAdj = mergeVectors rSub $ mergeVectors rAdd (redH ch)
-         gAdj = mergeVectors gSub $ mergeVectors gAdd (greenH ch)
-         bAdj = mergeVectors bSub $ mergeVectors bAdd (blueH ch)
+         rAdj = Map.adjust (+(-1)) redSubBucket $ Map.adjust (+1) redAddBucket (redCM ch)
+         gAdj = Map.adjust (+(-1)) greenSubBucket $ Map.adjust (+1) greenAddBucket (greenCM ch)
+         bAdj = Map.adjust (+(-1)) blueSubBucket $ Map.adjust (+1) blueAddBucket (blueCM ch)
 
          x = fromIntegral $ colNum ch
 
@@ -133,71 +127,50 @@ slideCol img ch = CHist rAdj gAdj bAdj (colNum ch) (rowNum ch + 1) rad
          greenSubBucket = round (255 * green subColor)
          blueSubBucket = round (255 * blue subColor)
 
-         -- generate vectors of (0, 1, -1) so that we can just add
-         -- TODO: this is really inefficient stuff. 
-         rAdd = VU.generate 256 (\a -> if a == redAddBucket then 1 else 0)
-         gAdd = VU.generate 256 (\a -> if a == greenAddBucket then 1 else 0)
-         bAdd = VU.generate 256 (\a -> if a == blueAddBucket then 1 else 0)
-
-         rSub = VU.generate 256 (\a -> if a == redSubBucket then (-1) else 0)
-         gSub = VU.generate 256 (\a -> if a == greenSubBucket then (-1) else 0)
-         bSub = VU.generate 256 (\a -> if a == blueSubBucket then (-1) else 0)
-
-
 
 -- | Given a Kernel Histogram in a particular state (i.e. 
--- with the current column histograms already merged, compute
+-- with the current column histograms already merged), compute
 -- the median color over that region
 kMedian :: KHist -> ColorRGBA
 kMedian khist = ColorRGBA r g b 1
         where
-        r = vMedian (VU.toList $ redMH khist) / 255
-        g = vMedian (VU.toList $ greenMH khist) / 255
-        b = vMedian (VU.toList $ blueMH khist) / 255
+        r = mMedian (redKM khist) / 255
+        g = mMedian (greenKM khist) / 255
+        b = mMedian (blueKM khist) / 255
 
--- | Recursive computation of median
-vMedianRec :: Int -> Int -> Int -> [Int] -> Int
-vMedianRec counter acc lim (x:xs) 
-           | acc + x < lim = vMedianRec (counter+1) (acc + x) lim xs
-           | otherwise = counter
-vMedianRec counter _ _ _ = counter
 
--- | Computes the median *bucket* from a histogram (list of ints)
-vMedian :: [Int] -> Double
-vMedian vec = fromIntegral $ vMedianRec 0 0 lim vec
+mMedianRec :: Map.Map Int Int -> [Int] -> Int -> Int -> Int
+mMedianRec m keys acc lim
+           | Map.null m = 0  -- ugh. Just for testing I guess.
+           | acc + freq < lim = mMedianRec m xs (acc + freq) lim
+           | null xs = x
+           | otherwise = x
+           where 
+           freq = fromJust $ Map.lookup x m
+           (x:xs) = keys
+
+
+mMedian :: Map.Map Int Int -> Double
+mMedian m = fromIntegral $ mMedianRec m keys 0 lim
         where
-        rad = sum vec `div` 2
-        lim = rad + 1
+        keys = Map.keys m
 
--- | For computing a histogram union (i.e. merging column histograms)
-mergeVectors :: (Num c, VU.Unbox c) => VU.Vector c -> VU.Vector c -> VU.Vector c
-mergeVectors = VU.zipWith (+)
+        numElems = Map.fold (+) 0 m
+        rad = numElems `div` 2
+        
+        lim = rad + 1
 
 
 genColCoords :: Int -> Int -> Int -> [Point2d]
 genColCoords kradius col row = [createPoint (col, y) | y <- [row - kradius..row+kradius]]
 
-valsToHist :: VU.Vector Double -> VU.Vector Int -> Int ->VU.Vector Int
-valsToHist vals hist bucket
-           | bucket == 256 = hist
-           | otherwise = valsToHist remVals (VU.snoc hist freq) (bucket + 1)
-           where 
 
-           dBucket = fromIntegral bucket
+valsToHMap :: [Int] -> Map.Map Int Int
+valsToHMap valList = foldr (myInsert 1) Map.empty valList
 
-           lowerLim = dBucket / 256
-
-           upperLim | bucket == 255 = 1.0000001 -- just something to capture the upper limit
-                    | otherwise = (dBucket + 1) / 256
-
-           -- a tiny predicate function
-           isInBucket val = val >= lowerLim && val < upperLim
-
-           -- partition the list into two parts
-           (inbucket, remVals) = VU.partition isInBucket vals
-
-           -- how many?
-           freq = VU.length inbucket
+           where
+           myInsert :: Int -> Int -> Map.Map Int Int -> Map.Map Int Int
+           myInsert v k = Map.insertWith (+) k v
 
 
 createColumnHist :: ImageRGBA -> Int -> Int -> Int -> CHist
@@ -212,14 +185,14 @@ createColumnHist img kradius col row
                  points = genColCoords kradius col row
 
                  -- vectors of RGB color values
-                 redvals = VU.fromList $ sort [red $ eval img pt | pt <- points]
-                 greenvals = VU.fromList $ sort [green $ eval img pt | pt <- points]
-                 bluevals = VU.fromList $ sort [blue $ eval img pt | pt <- points]
+                 redvals = [round $ 255 * (red $ eval img pt) | pt <- points]
+                 greenvals = [round $ 255 * (green $ eval img pt) | pt <- points]
+                 bluevals = [round $ 255 * (blue $ eval img pt) | pt <- points]
 
                  -- frequency histograms of each color channel
-                 rv = valsToHist redvals VU.empty 0
-                 gv = valsToHist greenvals VU.empty 0
-                 bv = valsToHist bluevals VU.empty 0
+                 rv = valsToHMap redvals
+                 gv = valsToHMap greenvals
+                 bv = valsToHMap bluevals 
 
 
 

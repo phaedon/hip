@@ -22,7 +22,7 @@ library
     Hip.Stencil
     Hip.Histogram
     Hip.Filter.Median
-  build-depends:   base, ohiio, vector, bytestring, containers
+  build-depends:   base, ohiio, vector, bytestring, containers, criterion
   hs-source-dirs:  src src/Hip src/Hip/Filter
  -- don't forget to add back -Werror
   ghc-options:     -Wall -rtsopts -O
