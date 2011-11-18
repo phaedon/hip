@@ -54,6 +54,17 @@ columnHist img cache (col, row) rad
            -- Note use of cacheAbove here. Very careful!
            adjCache = Map.insert col slidDown cacheAbove
 
+kernelHist :: ImageRGBA -> HistCache -> (Int, Int) -> Int -> (HistCache, KHist)
+kernelHist img cache (col, row) rad = (cache, KHist redM greenM blueM)
+           where
+           colHists = [columnHist img cache (c, row) rad | c <- [col - rad..col + rad]]
+           
+           blank = VU.replicate (256::Int) (0::Int)
+
+           redM = foldl' mergeVectors blank [redH c | (m, c) <- colHists]
+           greenM = foldl' mergeVectors blank [greenH c | (m, c) <- colHists]
+           blueM = foldl' mergeVectors blank [blueH c | (m, c) <- colHists]
+           
 
 -- | Represents a single column histogram. 
 -- 
@@ -75,13 +86,6 @@ data CHist = CHist {
 -- 
 data KHist = KHist {
 
-     -- ALL the column histograms for the image
-     histList :: [CHist],
-
-     -- Radius of the kernel over which we'll be computing medians
-     kRadius :: Int,
-
-     -- Last computed merged column hists:
      redMH :: VU.Vector Int,
      greenMH :: VU.Vector Int,
      blueMH :: VU.Vector Int
@@ -171,8 +175,6 @@ mergeVectors = VU.zipWith (+)
 initImageHist :: ImageRGBA -> Int -> Int -> KHist
 initImageHist img ncols krad
               = KHist 
-                allHists
-                krad
                 redM greenM blueM
       where
       -- All column histograms in a list!
