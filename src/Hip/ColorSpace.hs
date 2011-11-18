@@ -2,15 +2,16 @@
 -- A "color" is extremely generic. In our system, it is anything that can be
 -- the range of an Image.
 -- Examples:
---  - Bool: for morphological image processing, or for masks
---  - RGBA8: traditional 32-bit representation
---  - Float: for greyscale
---  - Int: for accumulating histograms (where a histogram is an image with 
+--  * Bool: for morphological image processing, or for masks
+--  * RGBA8: traditional 32-bit representation
+--  * Float: for greyscale
+--  * Int: for accumulating histograms (where a histogram is an image with 
 --    a 1-dimensional domain.
 module Hip.ColorSpace where
 
 import Data.Word 
 import Data.Bits 
+--import qualified Data.Vector.Generic as VG
 --import qualified Data.Vector.Unboxed as VU
 
 -----------------------------
@@ -31,10 +32,9 @@ class Color color where
 {-- |
 Sources:
 ========
-- Compositing Digital Images. Porter, T., & Duff, T. (1984). 
-  Computer Graphics. Computer, 18(3), 253-259.
-- Functional Image Synthesis. Elliott, C. 
-
+ * Compositing Digital Images. Porter, T., & Duff, T. (1984). 
+   Computer Graphics. Computer, 18(3), 253-259.
+ * Functional Image Synthesis. Elliott, C. 
 --}
 class (Color ccolor) => CompositeColor ccolor where
       cScale :: Double -> ccolor -> ccolor
@@ -102,6 +102,7 @@ instance CompositeColor ColorRGBA where
          cMult (ColorRGBA r g b a) (ColorRGBA r2 g2 b2 a2) = ColorRGBA (r*r2) (g*g2) (b*b2) (a*a2)
 
 
+-- | Color type for 32-bit RGBA colors (each channel is 8 bits)
 data ColorRGBA8 = ColorRGBA8 !Word8 !Word8 !Word8 !Word8
      deriving (Show, Eq)
 
@@ -122,7 +123,9 @@ rgba8ToRGBA (ColorRGBA8 r8 g8 b8 a8) = ColorRGBA rf gf bf af
              bf = toDouble b8
              af = toDouble a8
 
+
 -- | Truncate a floating RGBA representation to [0..1]
+-- Called automatically by rgbaToRGBA8 to prevent overflow.
 truncRGBA :: ColorRGBA -> ColorRGBA
 truncRGBA (ColorRGBA r g b a) = ColorRGBA rr rg rb ra
           where
@@ -178,6 +181,7 @@ toColor wordColor = ColorRGBA8 (gc Red) (gc Green) (gc Blue) (gc Alpha)
         gc = getColor wordColor
 
 
+
 data PrimaryColor = Red | Green | Blue | Alpha
      deriving (Eq, Show)
 
@@ -203,4 +207,5 @@ colorWhite = ColorRGBA 1 1 1 1
 
 --instance VU.Unbox ColorRGBA where
          
-        
+--instance VG.Vector VG.Vector ColorRGBA where
+--   basicLength (ColorRGBA r g b a) = VG.basicLength

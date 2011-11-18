@@ -1,14 +1,21 @@
-module Hip.Filter.Median where
-
+module Hip.Filter.Median (medianFilter) where
 
 import Hip.Histogram
-
-import Hip.ColorSpace
-import Hip.PointSpace
 import Hip.Image
+import Hip.Buffer
+import Hip.ColorSpace
+
+--import qualified Data.Vector.Generic.Mutable as VGM
+--import qualified Data.Vector.Unboxed.Mutable as VUM
+
+import Prelude hiding ((++))
 
 import qualified Data.Vector.Unboxed as VU
+import Data.Vector.Unboxed ((++))
+--import qualified Control.Monad.Primitive as MP
 
+import qualified Data.Map as Map
+       
 -- | Performs a median filter of radius krad on an image,
 -- and returns a function that contains a buffer with the 
 -- filtered image. 
@@ -23,20 +30,25 @@ medianFilter img bbox krad = do
              let ylim = nrows
              let xlim = ncols
 
-             -- Initialize a set of column histograms over the image
-             hist <- return $ initImageHist img ncols krad
-
-             
-             let loop i j | j == ylim = return ()
-                          | i == xlim = loop 0 (j + 1)
-                          | otherwise = undefined
+             -- Loop that computes median for each pixel
+             -- and inserts the color into the new color buffer.
+             let loop cache v i j | j == ylim = return v
+                          | i == xlim = loop cache v 0 (j + 1)
+                          | otherwise = loop hCache (currColors ++ v) (i+1) j
+                          where
+                          (ColorRGBA r g b a) = median
+                          currColors = VU.fromList [r, g, b, a]
+                          (hCache, kHist) = kernelHist img cache (i, j) krad
+                          median = kMedian kHist
                           
-             loop 0 0
-             
-             return $ getColor VU.empty
+                          
+             mvec <- loop Map.empty VU.empty 0 0
 
-             where
-             getColor :: VU.Vector ColorRGBA -> ImageRGBA
-             getColor colorvec = img
-             
-             
+             putStrLn "DONE THE INNER MVEC LOOP"
+
+             return $ crop bbox ( 
+                      leaf $ 
+                      dVectorToImageRGBA mvec (round $ width bbox) )
+
+
+
