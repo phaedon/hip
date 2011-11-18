@@ -56,9 +56,12 @@ columnHist img cache (col, row) rad
 
 
 kernelHist :: ImageRGBA -> HistCache -> (Int, Int) -> Int -> (HistCache, KHist)
-kernelHist img cache (col, row) rad = (cache, KHist redM greenM blueM)
+kernelHist img cache (col, row) rad = (caches, KHist redM greenM blueM)
            where
            colHists = [columnHist img cache (c, row) rad | c <- [col - rad..col + rad]]
+
+           -- TODO: make this more accurate, more efficient?
+           caches = Map.unions [m | (m, c) <- colHists]
            
            blank = VU.replicate (256::Int) (0::Int)
 

@@ -14,10 +14,6 @@ import qualified Data.Map as Map
 tanya :: (ImageSYM a) => IO a
 tanya = mkImageFnFromFile "tanya.png"
 
-hey :: IO CHist
-hey = do
-    tanyaImg <- tanya
-    return $ createColumnHist tanyaImg 12 100 1000
 
 main :: IO Bool
 main = do
@@ -30,15 +26,19 @@ main = do
        --let medianTanya = toMed tanyaImg
 --       let medChecker = toMed checkImg
 
+----------------
+-- TIMINGS
+----------------
        -- 100x100 with rad 3 filter: 1min 19sec
        --    1min 10sec by getting rid of redundant cons commands?
-       
+       --    1min 10sec using reverse loop in medianFilter
+       --     15 sec by using the union of maps in kernelHist !
+       --     40 sec with radius 7 (15 sec with rad 3)
        putStrLn "Beginning median filter..."
 
-       medChecker <- medianFilter testChecker (BBox2d pointOrigin 100 100) 3
-
-       putStrLn "Done!"
-       putStrLn "Saving image..."
+       noisy <- mkImageFnFromFile "noisy.png"
+       medNoisy <- medianFilter noisy (BBox2d pointOrigin 100 100) 3
+--       medChecker <- medianFilter testChecker (BBox2d pointOrigin 100 100) 3
 
        -- shift up
        --let shiftTanya = spatial (translate (Point2d 0 (-200))) tanyaImg       
@@ -48,7 +48,7 @@ main = do
 
        -- output a crop of the shifted image       
        --saveImage medianTanya (BBox2d (Point2d 800 800) 200 200)  "tanyaout.png"
-       saveImage medChecker (BBox2d pointOrigin 100 100)  "medcheckerout.png"
+       saveImage medNoisy (BBox2d pointOrigin 100 100)  "medNoisy.png"
 
        -- SLOW BLURRY CHECKERS
        --let shiftChecker = spatial (rotate (pi/10)) testChecker

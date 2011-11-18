@@ -34,14 +34,14 @@ medianFilter img bbox krad = do
              -- and inserts the color into the new color buffer.
              let loop cache v i j | j == ylim = return v
                           | i == xlim = loop cache v 0 (j + 1)
-                          | otherwise = loop hCache (currColors ++ v) (i+1) j
+                          | otherwise = loop hCache (v ++ currColors) (i+1) j
                           where
                           (ColorRGBA r g b a) = median
                           currColors = VU.fromList [r, g, b, a]
                           (hCache, kHist) = kernelHist img cache (i, j) krad
-                          median = kMedian kHist
-                          
-                          
+                          median = kMedian kHist -- THIS IS THE BOTTLENECK
+
+                                                      
              mvec <- loop Map.empty VU.empty 0 0
 
              putStrLn "DONE THE INNER MVEC LOOP"
