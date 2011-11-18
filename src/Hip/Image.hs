@@ -4,8 +4,8 @@
 -- | This module defines the core of the imaging DSL.
 -- Much of the inspiration comes from Pan and work on tagless interpreters.
 -- For more information, please see:
--- http://conal.net/Pan/
--- http://okmij.org/ftp/tagless-final/course/course.html
+-- * http://conal.net/Pan/
+-- * http://okmij.org/ftp/tagless-final/course/course.html
 module Hip.Image (
 
        ImageSYM (leaf, unary, binary,
@@ -29,16 +29,16 @@ module Hip.Image (
 import Hip.Lift
 import Hip.ColorSpace
 import Hip.PointSpace
+import Hip.BBox
 
-import Data.List
---import qualified Data.Vector.Unboxed as VU
+import Data.List -- foldl', used in reduce
 
-----------------------------------------
--- Image TYPECLASSES
-----------------------------------------
 
+-- | Type synonym for the most commonly used Image type in our system.
 type ImageRGBA = Point2d -> ColorRGBA
 
+
+-- | Here's the core of the imaging DSL:
 class ImageSYM repr where
 
       leaf :: ImageRGBA -> repr
@@ -96,6 +96,17 @@ instance ImageSYM (Point2d -> ColorRGBA) where
                 where
                 colors = map img (bboxToCoordList bbox) -- [img p | p <- (bboxToCoordList bbox)]
 
+
+-- | With an ImageSYM object, you can pass in a point and get a ColorRGBA.
+eval :: (Point2d -> ColorRGBA) -> Point2d -> ColorRGBA
+eval fn = fn
+
+-- | With an ImageSYM object, you can pass in a point and get a ColorRGBA8.
+evalRGBA8 :: (Point2d -> ColorRGBA) -> Point2d -> ColorRGBA8
+evalRGBA8 fn = rgbaToRGBA8 . fn
+
+
+-- | Just testing... this is how you would "interpret" the DSL with string evaluation.
 instance ImageSYM [Char] where
          leaf _ = "Leaf"
          unary _ child = "Unary" ++ "[" ++ child ++ "]"
@@ -111,12 +122,6 @@ instance ImageSYM [Char] where
 --wtf :: ImageTree2d ColorRGBA -> ImageTree2d ColorRGBA
 --wtf = id
 
-eval :: (Point2d -> ColorRGBA) -> Point2d -> ColorRGBA
-eval fn = fn
-
-evalRGBA8 :: (Point2d -> ColorRGBA) -> Point2d -> ColorRGBA8
-evalRGBA8 fn = rgbaToRGBA8 . fn
-
 --wrap :: FImage -> FImage
 --wrap = id
 
@@ -125,7 +130,7 @@ evalRGBA8 fn = rgbaToRGBA8 . fn
 
 
 
--- | I'm keeping this around for now, in case I need to do anything with it.
+---- | I'm keeping this around for now, in case I need to do anything with it.
 {-
 data ImageTree2d c
      = Leaf { imageFn :: Point2d -> c }
@@ -140,33 +145,6 @@ data ImageTree2d c
                  streePtr :: ImageTree2d c
                  }       
 -}
-
-data BBox2d = BBox2d { corner :: Point2d,
-                       width :: Double,
-                       height :: Double } deriving (Show)
-
-
-bboxIntDims :: BBox2d -> (Int, Int)
-bboxIntDims (BBox2d _ dw dh) = (round dw, round dh)
-
-bufferSize :: BBox2d -> Int
-bufferSize (BBox2d _ dw dh)
-           = (round dw * round dh) * 4
-
-isInside :: BBox2d -> Point2d -> Bool
-isInside (BBox2d (Point2d cx cy) w h) (Point2d x y) 
-         | x  < cx || x > cx + w || y < cy || y > cy + h = False
-         | otherwise = True
-
-bboxToCoordList :: BBox2d -> [Point2d]
-bboxToCoordList (BBox2d (Point2d cx cy) w h) = coordList
-                where
-                icx = round cx ::Int
-                icy = round cy ::Int
-                iw = round w - 1
-                ih = round h - 1
-
-                coordList = [ Point2d (fromIntegral kx) (fromIntegral ky) | kx <- [icx..(icx + iw)], ky <- [icy..(icy + ih)] ]
 
 {-
 data CropCtx = Crop | NoCrop

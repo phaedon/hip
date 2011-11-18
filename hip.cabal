@@ -8,19 +8,24 @@ Cabal-version:       >=1.2
 
 
 library
-  exposed-modules: Hip.ColorSpace Hip.PointSpace
+  exposed-modules: 
+    Hip.ColorSpace 
+    Hip.PointSpace
+    Hip.BBox
     Hip.Lift 
     Hip.Image 
     Hip.Generator
     Hip.ImageLoader 
     Hip.ImageSaver
+    Hip.Buffer
     Hip.Transform
     Hip.Stencil
     Hip.Histogram
 --    Hip.Filter.Median
-  build-depends:   base, ohiio, vector, bytestring
+  build-depends:   base, ohiio, vector, bytestring, containers
   hs-source-dirs:  src src/Hip src/Hip/Filter
-  ghc-options:     -Wall -Werror -rtsopts -O
+ -- don't forget to add back -Werror
+  ghc-options:     -Wall -rtsopts -O
   extra-libraries: HSohiio-0.1
   extra-lib-dirs: /Users/phaedon/Library/Haskell/ghc-7.2.1/lib/ohiio-0.1/lib
 
