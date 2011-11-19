@@ -58,7 +58,7 @@ chooseHist a b | rowNum a < rowNum b = b
                | otherwise = a
 
 kernelHist :: ImageRGBA -> HistCache -> (Int, Int) -> Int -> (HistCache, KHist)
-kernelHist img cache (col, row) rad = (caches, KHist redM greenM blueM)
+kernelHist img cache (col, row) rad = (cache, KHist redM greenM blueM)
            where
            colHists = [columnHist img cache (c, row) rad | c <- [col - rad..col + rad]]
 

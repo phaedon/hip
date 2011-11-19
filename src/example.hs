@@ -32,18 +32,13 @@ main = do
 ----------------
 -- TIMINGS
 ----------------
-       -- 100x100 with rad 3 filter: 1min 19sec
-       --    1min 10sec by getting rid of redundant cons commands?
-       --    1min 10sec using reverse loop in medianFilter
-       --     15 sec by using the union of maps in kernelHist !
-       --     40 sec with radius 7 (15 sec with rad 3)
-
-       --   5.5 sec with Map instead of Vector for histograms! 100x100 rad 3
-       --   9 sec with Map instead of Vector for histograms! 100x100 rad 7
-       --      (and also after using foldr in valsToHMap)
-       --    200x200 rad 3 : 77 sec :-( suggesting O(n^2) behavior ~ 16x in size of image
-       noisy <- mkImageFnFromFile "noisy.png"
-       medNoisy <- medianFilter noisy (BBox2d pointOrigin 100 100) 3
+       -- 100x100 with rad 3 filter: 0.9 sec
+       -- 100x100 with rad 7 filter: 4.4 sec
+       -- 200x200 with rad 3 filter: 3.2 sec
+       -- 350x350 with rad 10 filter: 115 sec
+       -- 640x480 with rad 3 filter: 17 sec
+       noisy <- mkImageFnFromFile "tanya.png"
+       medNoisy <- medianFilter noisy (BBox2d pointOrigin 640 480) 3
 
        --medChecker <- medianFilter testChecker (BBox2d pointOrigin 100 100) 3
 
@@ -55,7 +50,7 @@ main = do
 
        -- output a crop of the shifted image       
        --saveImage medianTanya (BBox2d (Point2d 800 800) 200 200)  "tanyaout.png"
-       saveImage medNoisy (BBox2d pointOrigin 100 100)  "medNoisy.png"
+       saveImage medNoisy (BBox2d pointOrigin 640 480)  "medTanya.png"
        --saveImage medChecker (BBox2d pointOrigin 100 100)  "medChecker.png"
 
        -- SLOW BLURRY CHECKERS

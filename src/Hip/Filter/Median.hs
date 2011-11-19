@@ -14,16 +14,21 @@ import qualified Data.Map as Map
 
 import Text.Printf
 
+import Data.Word
+import Foreign.Ptr
 
+import Data.ByteString
+import qualified Data.ByteString.Internal as BS
 
+import Hip.ImageSaver
        
 -- | Performs a median filter of radius krad on an image,
 -- and returns a function that contains a buffer with the 
 -- filtered image. 
 -- Since we are using the optimized algorithm, this of course
 -- requires evaluating the image at this stage in the pipeline.
-medianFilter :: ImageRGBA -> BBox2d -> Int -> IO ImageRGBA
-medianFilter img bbox krad = do 
+medianFilter' :: ImageRGBA -> BBox2d -> Int -> Ptr Word8 -> IO ()
+medianFilter' img bbox krad wptr = do 
 
              let ncols = round $ width bbox
              let nrows = round $ height bbox
@@ -33,22 +38,22 @@ medianFilter img bbox krad = do
 
              -- Loop that computes median for each pixel
              -- and inserts the color into the new color buffer.
-             let loop cache v i j | j == ylim = return v
-                          | i == xlim = loop cache v 0 (j + 1)
+             let loop cache i j | j == ylim = return ()
+                          | i == xlim = loop cache 0 (j + 1)
                           | otherwise = do
---                                      printf "coords %d %d\n" i j
-                                      loop hCache (v ++ currColors) (i+1) j
+                                      poker wptr median xlim (i, j)
+                                      loop hCache (i+1) j
                           where
-                          
-                          (ColorRGBA r g b a) = median
-                          currColors = VU.fromList [r, g, b, a]
                           (hCache, kHist) = kernelHist img cache (i, j) krad
-                          median = kMedian kHist
---                          median = ColorRGBA 0.0 0.5 0.0 1.0
+                          median = rgbaToRGBA8 $ kMedian kHist
 
-             mvec <- loop Map.empty VU.empty 0 0
+             loop Map.empty 0 0
 
-             return $ crop bbox ( 
-                      leaf $ 
-                      dVectorToImageRGBA mvec (round $ width bbox) )
-
+medianFilter :: ImageRGBA -> BBox2d -> Int -> IO ImageRGBA
+medianFilter img bbox krad = do
+                let filler = medianFilter' img bbox krad
+                bs <- BS.create (bufferSize bbox) filler
+                
+                return $ crop bbox (
+                       leaf $ 
+                       bytestringToImageRGBA bs (round $ width bbox) )
