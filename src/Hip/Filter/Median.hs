@@ -11,6 +11,11 @@ import qualified Data.Vector.Unboxed as VU
 import Data.Vector.Unboxed ((++))
 
 import qualified Data.Map as Map
+
+import Text.Printf
+
+
+
        
 -- | Performs a median filter of radius krad on an image,
 -- and returns a function that contains a buffer with the 
@@ -30,14 +35,17 @@ medianFilter img bbox krad = do
              -- and inserts the color into the new color buffer.
              let loop cache v i j | j == ylim = return v
                           | i == xlim = loop cache v 0 (j + 1)
-                          | otherwise = loop hCache (v ++ currColors) (i+1) j
+                          | otherwise = do
+--                                      printf "coords %d %d\n" i j
+                                      loop hCache (v ++ currColors) (i+1) j
                           where
+                          
                           (ColorRGBA r g b a) = median
                           currColors = VU.fromList [r, g, b, a]
                           (hCache, kHist) = kernelHist img cache (i, j) krad
                           median = kMedian kHist
+--                          median = ColorRGBA 0.0 0.5 0.0 1.0
 
-                                                      
              mvec <- loop Map.empty VU.empty 0 0
 
              return $ crop bbox ( 

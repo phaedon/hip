@@ -3,10 +3,10 @@ import Hip.ColorSpace
 import Hip.PointSpace
 import Hip.Generator
 import Hip.ImageLoader
-import Hip.Transform
+--import Hip.Transform
 import Hip.ImageSaver
-import Hip.Stencil
-import Hip.Histogram
+--import Hip.Stencil
+--import Hip.Histogram
 import Hip.Filter.Median
 
 import qualified Data.Map as Map
@@ -38,12 +38,13 @@ main = do
        --     15 sec by using the union of maps in kernelHist !
        --     40 sec with radius 7 (15 sec with rad 3)
 
-       --   6 sec with Map instead of Vector for histograms! 100x100 rad 3
-       --   10 sec with Map instead of Vector for histograms! 100x100 rad 7
+       --   5.5 sec with Map instead of Vector for histograms! 100x100 rad 3
+       --   9 sec with Map instead of Vector for histograms! 100x100 rad 7
        --      (and also after using foldr in valsToHMap)
-       --    200x200 rad 3 : 1min 25 sec :-(
+       --    200x200 rad 3 : 77 sec :-( suggesting O(n^2) behavior ~ 16x in size of image
        noisy <- mkImageFnFromFile "noisy.png"
-       medNoisy <- medianFilter noisy (BBox2d pointOrigin 100 100) 7
+       medNoisy <- medianFilter noisy (BBox2d pointOrigin 100 100) 3
+
        --medChecker <- medianFilter testChecker (BBox2d pointOrigin 100 100) 3
 
        -- shift up

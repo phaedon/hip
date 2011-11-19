@@ -53,13 +53,21 @@ columnHist img cache (col, row) rad
            adjCache = Map.insert col slidDown cacheAbove
 
 
+chooseHist :: CHist -> CHist -> CHist
+chooseHist a b | rowNum a < rowNum b = b
+               | otherwise = a
+
 kernelHist :: ImageRGBA -> HistCache -> (Int, Int) -> Int -> (HistCache, KHist)
 kernelHist img cache (col, row) rad = (caches, KHist redM greenM blueM)
            where
            colHists = [columnHist img cache (c, row) rad | c <- [col - rad..col + rad]]
 
-           -- TODO: make this more accurate, more efficient?
-           caches = Map.unions [m | (m, c) <- colHists]
+           -- ok so not using this cuts our time by a constant factor (5s vs 10s)
+           -- deliberately choosing the wrong hist triples the time to 30sec
+           -- this suggests that the cost of unioning our histograms is more expensive
+           -- than just defaulting to the leftmost value. argh! we need to have
+           -- something better in place.
+           caches = Map.unionsWith chooseHist [m | (m, c) <- colHists]
            
            redM = Map.unionsWith (+) [redCM c | (_, c) <- colHists]
            greenM = Map.unionsWith (+) [greenCM c | (_, c) <- colHists]
@@ -70,7 +78,6 @@ kernelHist img cache (col, row) rad = (caches, KHist redM greenM blueM)
 -- 
 data CHist = CHist {
 
-     -- Automatically recomputed as column slides down     
      redCM :: Map.Map Int Int,
      greenCM :: Map.Map Int Int,
      blueCM :: Map.Map Int Int,
@@ -93,39 +100,37 @@ data KHist = KHist {
 
 -- | Slides a column histogram down by 1 row
 slideCol :: ImageRGBA -> CHist -> CHist
-slideCol img ch = CHist rAdj gAdj bAdj (colNum ch) (rowNum ch + 1) rad
+slideCol img ch = CHist rAdj gAdj bAdj x (rowNum ch + 1) rad
          where
 
+         rAdj = Map.adjust (+(-1)) redSubBucket $ Map.insertWith (+) redAddBucket 1 (redCM ch)
+         gAdj = Map.adjust (+(-1)) greenSubBucket $ Map.insertWith (+) greenAddBucket 1 (greenCM ch)
+         bAdj = Map.adjust (+(-1)) blueSubBucket $ Map.insertWith (+) blueAddBucket 1 (blueCM ch)
+
          rad = radius ch
-         drad = fromIntegral rad         
-
-         rAdj = Map.adjust (+(-1)) redSubBucket $ Map.adjust (+1) redAddBucket (redCM ch)
-         gAdj = Map.adjust (+(-1)) greenSubBucket $ Map.adjust (+1) greenAddBucket (greenCM ch)
-         bAdj = Map.adjust (+(-1)) blueSubBucket $ Map.adjust (+1) blueAddBucket (blueCM ch)
-
-         x = fromIntegral $ colNum ch
+         x = colNum ch
 
          -- What's the y coordinate of the cells we're adding and subtracting?
-         y_ctr = fromIntegral $ rowNum ch
-         y_add = y_ctr + drad
-         y_sub = y_ctr + 1 - drad
+         y_ctr = rowNum ch
+         y_add = y_ctr + rad
+         y_sub = y_ctr + 1 - rad
          
          -- What points are we adding & subtracting?
-         addPoint = Point2d x y_add
-         subPoint = Point2d x y_sub
+         addPoint = createPoint (x, y_add)
+         subPoint = createPoint (x, y_sub)
          
          -- eval the image for those endpoints
-         addColor = eval img addPoint
-         subColor = eval img subPoint
+         (ColorRGBA rP gP bP _) = eval img addPoint
+         (ColorRGBA rS gS bS _) = eval img subPoint
                   
          -- figure out which buckets we're modifying in the existing histogram
-         redAddBucket = round (255 * red addColor)
-         greenAddBucket = round (255 * green addColor)
-         blueAddBucket = round (255 * blue addColor)
+         redAddBucket = round (255 * rP)
+         greenAddBucket = round (255 * gP)
+         blueAddBucket = round (255 * bP)
 
-         redSubBucket = round (255 * red subColor)
-         greenSubBucket = round (255 * green subColor)
-         blueSubBucket = round (255 * blue subColor)
+         redSubBucket = round (255 * rS)
+         greenSubBucket = round (255 * gS)
+         blueSubBucket = round (255 * bS)
 
 
 -- | Given a Kernel Histogram in a particular state (i.e. 
