@@ -1,7 +1,5 @@
 -- |
 -- Module      : Hip.Histogram
--- Copyright   : (c) Phaedon Sinis
--- License     : BSD-style
 -- 
 -- Maintainer  : Phaedon Sinis <sinis AT stanford>
 -- Stability   : experimental

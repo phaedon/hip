@@ -4,6 +4,7 @@ import Hip.Image
 import Hip.ColorSpace
 import Hip.PointSpace
 import Ohiio.ImageInput
+import Ohiio.ImageSpec
 import OhiioBindings
 
 import System.IO.Unsafe
@@ -23,14 +24,13 @@ mkImageFnFromFile filename = do
                   (mem, iSpecPtr) <- readImage filename
 
                   -- image size info
-                  cwidth <- c_ImageSpec_width iSpecPtr 
-                  cheight <- c_ImageSpec_height iSpecPtr 
-                  nchannels <- c_ImageSpec_nchannels iSpecPtr                        
+                  imgDims <- toHImageSpec iSpecPtr
 
-                  let w = fromIntegral cwidth
-                  let ch = fromIntegral nchannels         
+                  let w = imgWidth imgDims
+                  let h = imgHeight imgDims
+                  let ch = imgNChannels imgDims
 
-                  let bbox = BBox2d pointOrigin (fromIntegral cwidth) (fromIntegral cheight)
+                  let bbox = BBox2d pointOrigin (fromIntegral w) (fromIntegral h)
 
                   -- Partial function application allows us to return a closure.
                   -- SPECIAL TREAT: now, the crop box is part of the expression,
