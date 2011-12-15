@@ -4,23 +4,17 @@ import Hip.Histogram
 import Hip.Image
 import Hip.Buffer
 import Hip.ColorSpace
+import Hip.ImageSaver
 
 import Prelude hiding ((++))
 
-import qualified Data.Vector.Unboxed as VU
-import Data.Vector.Unboxed ((++))
-
-import qualified Data.Map as Map
-
-import Text.Printf
-
-import Data.Word
 import Foreign.Ptr
 
-import Data.ByteString
+import Data.Word
+import qualified Data.Map as Map
 import qualified Data.ByteString.Internal as BS
 
-import Hip.ImageSaver
+
        
 -- | Performs a median filter of radius krad on an image,
 -- and returns a function that contains a buffer with the 

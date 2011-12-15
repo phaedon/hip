@@ -53,7 +53,7 @@ isOverlapping bb1@(BBox2d (Point2d x1 y1) _ _) bb2@(BBox2d (Point2d x2 y2) _ _)
               
 
 bbUnion :: BBox2d -> BBox2d -> BBox2d
-bbUnion bb1@(BBox2d (Point2d x1 y1) w1 h1) bb2@(BBox2d (Point2d x2 y2) w2 h2) 
+bbUnion (BBox2d (Point2d x1 y1) w1 h1) (BBox2d (Point2d x2 y2) w2 h2) 
             = BBox2d (Point2d lowx lowy) bigw bigh
             where
             lowx = min x1 x2
@@ -65,7 +65,7 @@ bbUnion bb1@(BBox2d (Point2d x1 y1) w1 h1) bb2@(BBox2d (Point2d x2 y2) w2 h2)
             
 
 bbIntersection :: BBox2d -> BBox2d -> BBox2d
-bbIntersection bb1@(BBox2d c1@(Point2d x1 y1) w1 h1) bb2@(BBox2d c2@(Point2d x2 y2) w2 h2) 
+bbIntersection bb1@(BBox2d (Point2d x1 y1) w1 h1) bb2@(BBox2d (Point2d x2 y2) w2 h2) 
                | not (isOverlapping bb1 bb2) = emptyBBox
                | otherwise = BBox2d (Point2d lowx lowy) smallw smallh
                where

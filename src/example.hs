@@ -1,3 +1,7 @@
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE FlexibleInstances #-} 
+
+
 import Hip.Image
 import Hip.ColorSpace
 import Hip.PointSpace
@@ -9,9 +13,8 @@ import Hip.ImageSaver
 --import Hip.Histogram
 import Hip.Filter.Median
 
-import qualified Data.Map as Map
+--import qualified Data.Map as Map
 
---import Criterion.Main
 
 tanya :: IO ImageRGBA
 tanya = mkImageFnFromFile "tanya.png"
@@ -27,7 +30,13 @@ main = do
 
        let pushedCheck = push_crop cccc
 
-       saveImage pushedCheck (BBox2d pointOrigin 640 360) "ccc.png"
+       let ev = eval pushedCheck
+--       let ohgod = wtf pushedCheck
+
+--       let bb = extractBBox $ ohgod
+--       let bb = BBox2d pointOrigin 640 480
+       let bb = boxify pushedCheck
+       saveImage ev bb "ccc.png"
 
        {-
        lambros <- mkImageFnFromFile "lambros.png"

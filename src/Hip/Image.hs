@@ -12,6 +12,8 @@ module Hip.Image (
                  spatial, crop, reduce),
 
        ImageRGBA,
+
+--       ImageTree2d,
        
        BBox2d (BBox2d, corner, width, height),
        
@@ -22,8 +24,10 @@ module Hip.Image (
 
        eval,
        evalRGBA8,
-       
-       push_crop
+
+       showStr,       
+       push_crop,
+       boxify
 
 ) where
 
@@ -63,15 +67,6 @@ class ImageSYM repr where
 -- and other interesting stuff...
 
 
--- | OMG conversion to data type. How cool, how bizarre
-instance ImageSYM (ImageTree2d ColorRGBA) where
-         leaf = Leaf
-         unary = Unary
-         binary = Binary
-         spatial = Spatial
-         crop = CCrop
-         reduce = Reduce
-
 
 -- | An image expression as a single function. Whoa.......
 instance ImageSYM (Point2d -> ColorRGBA) where
@@ -109,15 +104,15 @@ instance ImageSYM [Char] where
          reduce = undefined
                        
 
-wtf :: ImageTree2d ColorRGBA -> ImageTree2d ColorRGBA
-wtf = id
+--wtf :: ImageTree2d ColorRGBA -> ImageTree2d ColorRGBA
+--wtf = id
 
 
 showStr :: String -> String
 showStr = id
 
 
-
+{-
 ---- | I'm keeping this around for now, in case I need to do anything with it.
 data ImageTree2d c
      = Leaf { imageFn :: Point2d -> c }
@@ -137,6 +132,17 @@ data ImageTree2d c
               combOp :: c -> c -> c,
               rtreePtr :: ImageTree2d c}
 
+-- | OMG conversion to data type. How cool, how bizarre
+instance ImageSYM (ImageTree2d ColorRGBA) where
+         leaf = Leaf
+         unary = Unary
+         binary = Binary
+         spatial = Spatial
+         crop = CCrop
+         reduce = Reduce
+
+
+-}
 
 data CropCtx = Crop BBox2d | NoCrop
 
@@ -162,8 +168,28 @@ instance ImageSYM a => ImageSYM (CropCtx -> a) where
 
          reduce bbox op img bb = undefined
 
-push_crop :: (ImageSYM a) => (CropCtx -> a) -> a
+-- | Call this in order to push crops all the way down to the leaves
+push_crop :: (CropCtx -> a) -> a
 push_crop i = i NoCrop
 
-extractBBox :: ImageSYM a => a -> BBox2d
-extractBBox img = undefined
+
+-- | Assumes that push_crop has already been called on the expression.
+-- 
+instance ImageSYM BBox2d where
+
+         -- If we got all the way to a leaf, there was no crop, 
+         -- so we return a default value.
+         leaf _ = emptyBBox
+
+         -- recurse...
+         unary _ img = img
+         binary _ img1 img2 = bbIntersection img1 img2
+         spatial _ img = img
+
+         -- Reached the crop node!
+         crop bbox _ = bbox
+
+         reduce bbox op img = undefined
+
+boxify :: BBox2d -> BBox2d
+boxify = id         

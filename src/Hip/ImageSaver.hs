@@ -63,5 +63,5 @@ saveImage img bbox name = do
           
           let w = round $ width bbox
           let h = round $ height bbox
-          buf <- imageToByteString img bbox
+          buf <- imageToByteString (eval img) bbox
           writeImage buf (w, h) name
