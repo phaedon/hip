@@ -21,8 +21,9 @@ module Hip.Image (
        bboxToCoordList,
 
        eval,
-       evalRGBA8
-
+       evalRGBA8,
+       
+       push_crop
 
 ) where
 
@@ -60,28 +61,17 @@ class ImageSYM repr where
 
 -- | For now, this is redundant. But I'm imagining adding bounding boxes
 -- and other interesting stuff...
---newtype FImage = FImage { getFn :: Point2d -> ColorRGBA }
 
-{-
-instance ImageSYM FImage where
-      leaf = FImage
-      unary op child = FImage $ lift1 op (getFn child)
-      binary op tl tr = FImage $ lift2 op (getFn tl) (getFn tr)
-      spatial op img = FImage $ getFn img . op
-      crop = undefined 
-      reduce = undefined
--}
 
-{-
 -- | OMG conversion to data type. How cool, how bizarre
 instance ImageSYM (ImageTree2d ColorRGBA) where
          leaf = Leaf
          unary = Unary
          binary = Binary
          spatial = Spatial
-         crop = undefined
-         reduce = undefined
--}
+         crop = CCrop
+         reduce = Reduce
+
 
 -- | An image expression as a single function. Whoa.......
 instance ImageSYM (Point2d -> ColorRGBA) where
@@ -119,19 +109,16 @@ instance ImageSYM [Char] where
          reduce = undefined
                        
 
---wtf :: ImageTree2d ColorRGBA -> ImageTree2d ColorRGBA
---wtf = id
+wtf :: ImageTree2d ColorRGBA -> ImageTree2d ColorRGBA
+wtf = id
 
---wrap :: FImage -> FImage
---wrap = id
 
---showStr :: String -> String
---showStr = id
+showStr :: String -> String
+showStr = id
 
 
 
 ---- | I'm keeping this around for now, in case I need to do anything with it.
-{-
 data ImageTree2d c
      = Leaf { imageFn :: Point2d -> c }
      | Unary { unaryOp :: c -> c,
@@ -144,12 +131,39 @@ data ImageTree2d c
      | Spatial { xformFn :: Point2d -> Point2d,
                  streePtr :: ImageTree2d c
                  }       
--}
+     | CCrop { cropBox :: BBox2d,
+               ctreePtr :: ImageTree2d c }
+     | Reduce { rbbox :: BBox2d,
+              combOp :: c -> c -> c,
+              rtreePtr :: ImageTree2d c}
 
-{-
-data CropCtx = Crop | NoCrop
 
-instance (ImageSYM r) => ImageSYM (CropCtx -> r) where
-         leaf fn _ = fn
-         unary _ img (Crop) = undefined
--}
+data CropCtx = Crop BBox2d | NoCrop
+
+instance ImageSYM a => ImageSYM (CropCtx -> a) where
+
+         leaf fn (Crop bb) = crop bb $ leaf fn
+         leaf fn (NoCrop) = leaf fn
+
+         unary op img (Crop bb) = unary op (crop bb img NoCrop)
+         unary op img (NoCrop) = unary op img NoCrop
+
+         binary op img1 img2 (Crop bb) = binary op (crop bb img1 NoCrop) (crop bb img2 NoCrop)
+         binary op img1 img2 (NoCrop) = binary op (img1 NoCrop) (img2 NoCrop)
+
+         -- the hardest part
+         spatial op img (Crop bb) = spatial op (crop xformedbb img NoCrop)
+                 where
+                 xformedbb = undefined
+         spatial op img (NoCrop) = spatial op (img NoCrop)
+
+         crop bbox img (Crop bb) = img (Crop (bbIntersection bbox bb))
+         crop bbox img (NoCrop) = img (Crop bbox)
+
+         reduce bbox op img bb = undefined
+
+push_crop :: (ImageSYM a) => (CropCtx -> a) -> a
+push_crop i = i NoCrop
+
+extractBBox :: ImageSYM a => a -> BBox2d
+extractBBox img = undefined
