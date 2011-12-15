@@ -22,6 +22,13 @@ tanya = mkImageFnFromFile "tanya.png"
 main :: IO Bool
 main = do
        
+--       ts <- tanya
+       --let conv = convolve gauss7x7 testChecker (BBox2d pointOrigin 7 7) 7 7
+
+--       med <- medianFilter testChecker (BBox2d pointOrigin 100 100) 3
+  --     saveImage med (BBox2d pointOrigin 640 480) "medchecker.png"
+
+{-
        let c = leaf testChecker
        let cc = crop (BBox2d pointOrigin 100 100) c
        let ccc = unary (cDarken 0.8) cc
@@ -38,9 +45,8 @@ main = do
        let bb = boxify pushedCheck
 
        saveImage ev bb "ccc.png"
+-}
 
-       {-
        lambros <- mkImageFnFromFile "lambros.png"
-       medLambros <- medianFilter lambros (BBox2d pointOrigin 640 360) 1
+       medLambros <- medianFilter lambros (BBox2d pointOrigin 640 360) 3
        saveImage medLambros (BBox2d pointOrigin 640 360)  "medLambros.png"
-       -}
