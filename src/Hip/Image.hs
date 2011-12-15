@@ -157,7 +157,7 @@ instance ImageSYM a => ImageSYM (CropCtx -> a) where
          binary op img1 img2 (Crop bb) = binary op (crop bb img1 NoCrop) (crop bb img2 NoCrop)
          binary op img1 img2 (NoCrop) = binary op (img1 NoCrop) (img2 NoCrop)
 
-         -- the hardest part
+         -- TODO:
          spatial op img (Crop bb) = spatial op (crop xformedbb img NoCrop)
                  where
                  xformedbb = undefined
@@ -169,7 +169,7 @@ instance ImageSYM a => ImageSYM (CropCtx -> a) where
          reduce bbox op img bb = undefined
 
 -- | Call this in order to push crops all the way down to the leaves
-push_crop :: (CropCtx -> a) -> a
+push_crop :: (ImageSYM a) => (CropCtx -> a) -> a
 push_crop i = i NoCrop
 
 

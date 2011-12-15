@@ -1,3 +1,8 @@
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE FlexibleInstances #-}
+
+
+
 module Hip.ImageSaver where
 
 import Hip.Image
@@ -9,10 +14,7 @@ import OhiioBindings
 
 import Data.Word
 import Foreign.Ptr
---import Foreign.C.Types
---import Foreign.C.String -- for newCString
 import Foreign.Storable
---import Foreign.Marshal.Alloc -- for malloc & free
 
 import Data.ByteString
 import qualified Data.ByteString.Internal as BS
@@ -58,10 +60,16 @@ imageToByteString img bbox = do
                   -- and, create the memory buffer, properly initialized!
                   BS.create (bufferSize bbox) filler
                   
+
+--saveImage :: (ImageSYM t) => t -> BBox2d -> String -> IO Bool
 saveImage :: ImageRGBA -> BBox2d -> String -> IO Bool
 saveImage img bbox name = do
-          
+          -- UGH no idea why the polymorphic form doesn't work here even though
+          -- I've disabled the DMR. This means I can't use the boxify feature :-(
+          --          let pushed = push_crop img
+          --          let bb = boxify pushed
+          let ei = eval img
           let w = round $ width bbox
           let h = round $ height bbox
-          buf <- imageToByteString (eval img) bbox
+          buf <- imageToByteString ei bbox
           writeImage buf (w, h) name

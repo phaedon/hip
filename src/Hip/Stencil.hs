@@ -1,3 +1,4 @@
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE FlexibleContexts #-} 
 
 module Hip.Stencil where
@@ -29,6 +30,7 @@ outerProd kern1d (Point2d x y) | x < 0 || y < 0 = colorEmpty
                         totalsq = VU.sum kern1d ** 2
 
 
+--convolve :: (ImageSYM a) => a -> a -> BBox2d -> Int -> Int -> Point2d -> t
 convolve :: ImageSYM (Point2d -> t) => (Point2d -> t) -> (Point2d -> t) -> BBox2d -> Int -> Int -> Point2d -> t
 convolve kern img bbox xdim ydim pt = reduce bbox cAdd (binary cMult kern (spatial shift img)) pt
          where

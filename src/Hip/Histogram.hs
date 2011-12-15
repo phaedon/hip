@@ -65,7 +65,7 @@ kernelHist img cache (col, row) rad = (cache, KHist redM greenM blueM)
            -- this suggests that the cost of unioning our histograms is more expensive
            -- than just defaulting to the leftmost value. argh! we need to have
            -- something better in place.
-           caches = Map.unionsWith chooseHist [m | (m, c) <- colHists]
+--           caches = Map.unionsWith chooseHist [m | (m, _) <- colHists]
            
            redM = Map.unionsWith (+) [redCM c | (_, c) <- colHists]
            greenM = Map.unionsWith (+) [greenCM c | (_, c) <- colHists]
